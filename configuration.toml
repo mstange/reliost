@@ -1,0 +1,20 @@
+[server]
+port = 8000
+
+# Servers from which we can download Breakpad .sym files
+[symbols.breakpad]
+servers = [
+  "https://symbols.mozilla.org",
+  "https://symbols.mozilla.org/try"
+]
+cache_dir = "./symbols/"
+symindex_dir = "./symbols/"
+
+# Servers from which we can download Windows .pdb, .exe and .dll files
+[symbols.windows]
+servers = [
+  "https://symbols.mozilla.org",
+  "https://symbols.mozilla.org/try",
+  "https://msdl.microsoft.com/download/symbols"
+]
+cache_dir = "./winsymbols/"
