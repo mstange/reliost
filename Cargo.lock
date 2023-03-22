@@ -952,10 +952,41 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "201de327520df007757c1f0adce6e827fe8562fbc28bfd9c15571c66ca1f5f79"
 
 [[package]]
+name = "linear-map"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bfae20f6b19ad527b550c223fddc3077a547fc70cda94b9b566575423fd303ee"
+
+[[package]]
 name = "linked-hash-map"
 version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0717cef1bc8b636c6e1c1bbdefc09e6322da8a9321966e8928ef80d20f7f770f"
+
+[[package]]
+name = "linux-perf-data"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04f5a02690fb67db3945c4f5cfd6714c5371539728fea15ab2faafbd499bedaf"
+dependencies = [
+ "byteorder",
+ "linear-map",
+ "linux-perf-event-reader",
+ "memchr",
+ "thiserror",
+]
+
+[[package]]
+name = "linux-perf-event-reader"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e93938b52460a3e539c9465592c5f645c7ca3847da1d7dbee20e3564d55c5a90"
+dependencies = [
+ "bitflags",
+ "byteorder",
+ "memchr",
+ "thiserror",
+]
 
 [[package]]
 name = "local-channel"
@@ -1591,8 +1622,7 @@ checksum = "7b4b9743ed687d4b4bcedf9ff5eaa7398495ae14e61cba0a295704edbc7decde"
 [[package]]
 name = "samply-api"
 version = "0.21.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92a94c595a66316dc91dcca3d08cbfd4bc5f138c2983314b9b2bfea47f2eb03f"
+source = "git+https://github.com/mstange/samply#0c4fea34ab8b5847a4d5985e482a89c3c56e5d2f"
 dependencies = [
  "samply-symbols",
  "serde",
@@ -1607,8 +1637,7 @@ dependencies = [
 [[package]]
 name = "samply-symbols"
 version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0e6151bb80208ee7581624bec9318fafc620e9181fe570b4e7626981b3bb2de"
+source = "git+https://github.com/mstange/samply#0c4fea34ab8b5847a4d5985e482a89c3c56e5d2f"
 dependencies = [
  "addr2line",
  "bitflags",
@@ -1617,6 +1646,7 @@ dependencies = [
  "elsa",
  "flate2",
  "gimli",
+ "linux-perf-data",
  "lzma-rs",
  "macho-unwind-info",
  "memchr",
@@ -1625,12 +1655,12 @@ dependencies = [
  "object",
  "pdb-addr2line",
  "rangemap",
- "regex",
  "rustc-demangle",
  "srcsrv",
  "thiserror",
  "uuid",
  "yoke",
+ "zerocopy",
 ]
 
 [[package]]
@@ -2264,8 +2294,7 @@ dependencies = [
 [[package]]
 name = "wholesym"
 version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "71f0e2ed4d5900d50a63cc2951e9b8627696331d0047fd343cf5dd2b25a3fafc"
+source = "git+https://github.com/mstange/samply#0c4fea34ab8b5847a4d5985e482a89c3c56e5d2f"
 dependencies = [
  "bytes",
  "core-foundation",

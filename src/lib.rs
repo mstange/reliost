@@ -61,10 +61,9 @@ fn create_symbol_manager(settings: Settings) -> SymbolManager {
                     config = config.breakpad_symbols_server(server_url, breakpad.cache_dir.clone());
                 }
             }
-            // Not supported in wholesym yet, but maybe soon.
-            // if let Some(symindex_dir) = breakpad.symindex_dir {
-            //     config = config.breakpad_symindex_cache_dir(symindex_dir);
-            // }
+            if let Some(symindex_dir) = breakpad.symindex_dir {
+                config = config.breakpad_symindex_cache_dir(symindex_dir);
+            }
         }
         if let Some(windows) = symbols.windows {
             for server_url in windows.servers {
@@ -76,7 +75,7 @@ fn create_symbol_manager(settings: Settings) -> SymbolManager {
 }
 
 async fn greet() -> impl Responder {
-    format!("Hello world!")
+    "Hello world!".to_string()
 }
 
 async fn health_check() -> impl Responder {
@@ -87,7 +86,7 @@ async fn symbolicate_v5(
     contents: web::Bytes,
     symbol_manager: web::Data<Arc<SymbolManager>>,
 ) -> impl Responder {
-    let request_json = std::str::from_utf8(&*contents).unwrap();
+    let request_json = std::str::from_utf8(&contents).unwrap();
     symbol_manager
         .get_ref()
         .query_json_api("/symbolicate/v5", request_json)
@@ -98,7 +97,7 @@ async fn asm_v1(
     contents: web::Bytes,
     symbol_manager: web::Data<Arc<SymbolManager>>,
 ) -> impl Responder {
-    let request_json = std::str::from_utf8(&*contents).unwrap();
+    let request_json = std::str::from_utf8(&contents).unwrap();
     symbol_manager
         .get_ref()
         .query_json_api("/asm/v1", request_json)
