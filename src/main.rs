@@ -1,6 +1,6 @@
 use std::net::TcpListener;
 
-use reliost::{get_configuration, run};
+use reliost::{configuration::get_configuration, run};
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
