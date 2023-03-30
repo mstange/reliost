@@ -1,6 +1,6 @@
 use std::net::TcpListener;
 
-use reliost::{ServerSettings, Settings};
+use reliost::{configuration::ServerSettings, configuration::Settings};
 
 #[tokio::test]
 async fn health_check_works() {
@@ -23,7 +23,7 @@ fn spawn_app() -> String {
         server: ServerSettings { port },
         symbols: None,
     };
-    let server = reliost::run(listener, settings).expect("Failed to bind address.");
+    let server = reliost::startup::run(listener, settings).expect("Failed to bind address.");
     let _ = tokio::spawn(server);
     format!("127.0.0.1:{port}")
 }
