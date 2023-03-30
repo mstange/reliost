@@ -1,43 +1,14 @@
 pub mod configuration;
+pub mod routes;
 pub mod symbol_manager;
 
 use std::{net::TcpListener, sync::Arc};
 
 use crate::configuration::Settings;
+use crate::routes::{asm_v1, greet, health_check, symbolicate_v5};
 use crate::symbol_manager::create_symbol_manager;
 use actix_cors::Cors;
-use actix_web::{dev::Server, web, App, HttpResponse, HttpServer, Responder};
-use wholesym::SymbolManager;
-
-async fn greet() -> impl Responder {
-    "Hello world!".to_string()
-}
-
-async fn health_check() -> impl Responder {
-    HttpResponse::Ok()
-}
-
-async fn symbolicate_v5(
-    contents: web::Bytes,
-    symbol_manager: web::Data<Arc<SymbolManager>>,
-) -> impl Responder {
-    let request_json = std::str::from_utf8(&contents).unwrap();
-    symbol_manager
-        .get_ref()
-        .query_json_api("/symbolicate/v5", request_json)
-        .await
-}
-
-async fn asm_v1(
-    contents: web::Bytes,
-    symbol_manager: web::Data<Arc<SymbolManager>>,
-) -> impl Responder {
-    let request_json = std::str::from_utf8(&contents).unwrap();
-    symbol_manager
-        .get_ref()
-        .query_json_api("/asm/v1", request_json)
-        .await
-}
+use actix_web::{dev::Server, web, App, HttpServer};
 
 pub fn run(listener: TcpListener, settings: Settings) -> Result<Server, std::io::Error> {
     let symbol_manager = Arc::new(create_symbol_manager(settings));
