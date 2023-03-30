@@ -4,6 +4,9 @@ on: [push, pull_request]
 
 env:
   CARGO_TERM_COLOR: always
+  SCCACHE_GHA_ENABLED: "true"
+  RUSTC_WRAPPER: "sccache"
+  SCCACHE_VERSION: "v0.4.0"
 
 jobs:
   build:
@@ -11,6 +14,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.3
+        with:
+          version: ${{ env.SCCACHE_VERSION }}
 
       - name: Build
         run: cargo build --verbose
