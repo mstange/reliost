@@ -1,0 +1,17 @@
+name: Docker Publish
+
+on:
+  push:
+    branches:
+      - "production"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag reliost:$(date +%s)
+      # This will be done later.
+      # - name: Publish the Docker image
+      #   run:
