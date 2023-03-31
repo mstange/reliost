@@ -1703,7 +1703,7 @@ checksum = "7b4b9743ed687d4b4bcedf9ff5eaa7398495ae14e61cba0a295704edbc7decde"
 [[package]]
 name = "samply-api"
 version = "0.21.1"
-source = "git+https://github.com/mstange/samply#0c4fea34ab8b5847a4d5985e482a89c3c56e5d2f"
+source = "git+https://github.com/mstange/samply?rev=0c4fea3#0c4fea34ab8b5847a4d5985e482a89c3c56e5d2f"
 dependencies = [
  "samply-symbols",
  "serde",
@@ -1718,7 +1718,7 @@ dependencies = [
 [[package]]
 name = "samply-symbols"
 version = "0.20.0"
-source = "git+https://github.com/mstange/samply#0c4fea34ab8b5847a4d5985e482a89c3c56e5d2f"
+source = "git+https://github.com/mstange/samply?rev=0c4fea3#0c4fea34ab8b5847a4d5985e482a89c3c56e5d2f"
 dependencies = [
  "addr2line",
  "bitflags",
@@ -2475,7 +2475,7 @@ dependencies = [
 [[package]]
 name = "wholesym"
 version = "0.3.0"
-source = "git+https://github.com/mstange/samply#0c4fea34ab8b5847a4d5985e482a89c3c56e5d2f"
+source = "git+https://github.com/mstange/samply?rev=0c4fea3#0c4fea34ab8b5847a4d5985e482a89c3c56e5d2f"
 dependencies = [
  "bytes",
  "core-foundation",
