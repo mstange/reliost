@@ -17,13 +17,17 @@ async fn health_check_works() {
 }
 
 fn spawn_app() -> String {
-    let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
+    let host = "127.0.0.1";
+    let listener = TcpListener::bind(format!("{host}:0")).expect("Failed to bind random port");
     let port = listener.local_addr().unwrap().port();
     let settings = Settings {
-        server: ServerSettings { port },
+        server: ServerSettings {
+            host: host.to_string(),
+            port,
+        },
         symbols: None,
     };
     let server = reliost::startup::run(listener, settings).expect("Failed to bind address.");
     let _ = tokio::spawn(server);
-    format!("127.0.0.1:{port}")
+    format!("{host}:{port}")
 }
