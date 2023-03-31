@@ -5,6 +5,7 @@ use crate::routes::{asm_v1, greet, health_check, symbolicate_v5};
 use crate::symbol_manager::create_symbol_manager;
 use actix_cors::Cors;
 use actix_web::{dev::Server, web, App, HttpServer};
+use tracing_actix_web::TracingLogger;
 
 pub fn run(listener: TcpListener, settings: Settings) -> Result<Server, std::io::Error> {
     let symbol_manager = Arc::new(create_symbol_manager(settings));
@@ -15,6 +16,7 @@ pub fn run(listener: TcpListener, settings: Settings) -> Result<Server, std::io:
             .allow_any_header();
         App::new()
             .wrap(cors)
+            .wrap(TracingLogger::default())
             .route("/", web::get().to(greet))
             .route("/health_check", web::get().to(health_check))
             .route("/symbolicate/v5", web::post().to(symbolicate_v5))
