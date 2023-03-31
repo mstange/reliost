@@ -1,7 +1,6 @@
 # Servers from which we can download Breakpad .sym files
 [symbols.breakpad]
 servers = [
-  "https://symbols.mozilla.org",
   "https://symbols.mozilla.org/try"
 ]
 cache_dir = "./symbols/"
