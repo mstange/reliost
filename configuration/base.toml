@@ -1,6 +1,3 @@
-[server]
-port = 8000
-
 # Servers from which we can download Breakpad .sym files
 [symbols.breakpad]
 servers = [
