@@ -11,7 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag reliost:$(date +%s)
+        run: |
+          docker build . --file Dockerfile --tag reliost:$(date +%s) \
+            --build-arg github_build_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            --build-arg github_run_id=$GITHUB_RUN_ID
       # This will be done later.
       # - name: Publish the Docker image
       #   run:
