@@ -1,5 +1,6 @@
-use actix_web::{http::header::ContentType, web, HttpResponse, Responder};
-use std::{env, fs, path::Path, sync::Arc};
+use actix_web::{error, http::header::ContentType, web, HttpResponse, Responder};
+use std::{env, fs, io, path::Path, sync::Arc};
+use thiserror::Error;
 use wholesym::SymbolManager;
 
 pub async fn greet() -> impl Responder {
@@ -32,8 +33,28 @@ pub async fn asm_v1(
         .await
 }
 
+#[derive(Error, Debug)]
+pub enum VersionError {
+    #[error("The version file could not be found.")]
+    VersionFileNotFound,
+    #[error("An error occurred while retrieving the version file: {error}")]
+    Other { error: io::Error },
+}
+
+// Use the default implementation for `error_response()` method which returns 500.
+impl error::ResponseError for VersionError {}
+
+impl From<io::Error> for VersionError {
+    fn from(err: io::Error) -> VersionError {
+        match err.kind() {
+            io::ErrorKind::NotFound => VersionError::VersionFileNotFound,
+            _ => VersionError::Other { error: err },
+        }
+    }
+}
+
 /// "Respond to `/__version__` with the contents of /app/version.json."
-pub async fn version() -> impl Responder {
+pub async fn version() -> Result<HttpResponse, VersionError> {
     // Cargo sets the OUT_DIR to appropriate directory for debug and leaves it empty for release.
     // Build script places it to the root directory if it's release.
     let out_dir = env::var("OUT_DIR").unwrap_or_else(|_| ".".to_string());
@@ -42,10 +63,16 @@ pub async fn version() -> impl Responder {
     // This is a very small file, that's why it's not a problem to directly read it.
     // We could cache it in the future if we need to.
     match fs::read_to_string(path) {
-        Ok(contents) => HttpResponse::Ok()
-            .content_type(ContentType::json())
-            .body(contents),
-        Err(err) => HttpResponse::from_error(err),
+        Ok(contents) => {
+            let response = HttpResponse::Ok()
+                .content_type(ContentType::json())
+                .body(contents);
+            Ok(response)
+        }
+        Err(err) => {
+            tracing::error!("Failed to read version.json file to string. Error: {}", err);
+            Err(err.into())
+        }
     }
 }
 
