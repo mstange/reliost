@@ -3,12 +3,26 @@ use std::net::TcpListener;
 use reliost::{configuration::ServerSettings, configuration::Settings};
 
 #[tokio::test]
-async fn health_check_works() {
+async fn heartbeat_works() {
     let address = spawn_app();
 
     let client = reqwest::Client::new();
     let response = client
-        .get(&format!("http://{address}/health_check"))
+        .get(&format!("http://{address}/__heartbeat__"))
+        .send()
+        .await
+        .expect("Failed to execute request.");
+    assert!(response.status().is_success());
+    assert_eq!(response.content_length(), Some(0));
+}
+
+#[tokio::test]
+async fn lbheartbeat_works() {
+    let address = spawn_app();
+
+    let client = reqwest::Client::new();
+    let response = client
+        .get(&format!("http://{address}/__lbheartbeat__"))
         .send()
         .await
         .expect("Failed to execute request.");
