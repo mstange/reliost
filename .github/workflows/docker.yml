@@ -36,9 +36,8 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: docker-image
-          path: ./image.tar
       - name: Display structure of downloaded files
-        run: ls -al
+        run: ls -R
       - name: Load archived Docker image
         run: docker load -i ./image.tar
       - name: Publish Docker Image to Docker Hub
