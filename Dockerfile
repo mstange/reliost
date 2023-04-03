@@ -4,7 +4,7 @@ ARG groupid=10001
 # First, we need to build and cache our dependencies so it doesn't have to
 # rebuild them every time we build this Dockerfile.
 # See https://github.com/LukeMathWalker/cargo-chef for more information.
-FROM lukemathwalker/cargo-chef:latest-rust-slim-bullseye as chef
+FROM lukemathwalker/cargo-chef:latest-rust-bullseye as chef
 
 # ARG statements goe out of scope after each FROM statement. We need to
 # re-declare them on each stage where we want to use.
@@ -75,6 +75,9 @@ RUN apt-get update -y \
 
 # Copy the compiled binary from the builder image.
 COPY --from=builder /app/target/release/reliost reliost
+
+# Copy the version.json file as it's needed for the __version__ endpoint.
+COPY --from=builder /app/version.json version.json
 
 # Copy the configuration files as they are needed for the runtime.
 COPY configuration configuration
