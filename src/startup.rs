@@ -1,7 +1,12 @@
 use std::{net::TcpListener, sync::Arc};
 
 use crate::configuration::Settings;
-use crate::routes::{asm_v1, greet, heartbeat, lbheartbeat, symbolicate_v5, version};
+use crate::routes::{
+    asm::asm_v1,
+    dockerflow::{heartbeat, lbheartbeat, version},
+    root::greet,
+    symbolicate::symbolicate_v5,
+};
 use crate::symbol_manager::create_symbol_manager;
 use actix_cors::Cors;
 use actix_web::{dev::Server, web, App, HttpServer};

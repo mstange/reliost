@@ -1,33 +1,6 @@
-use actix_web::{error, http::header::ContentType, web, HttpResponse, Responder};
-use std::{env, fs, io, path::Path, sync::Arc};
+use actix_web::{error, http::header::ContentType, HttpResponse, Responder};
+use std::{env, fs, io, path::Path};
 use thiserror::Error;
-use wholesym::SymbolManager;
-
-pub async fn greet() -> impl Responder {
-    "Hello world!".to_string()
-}
-
-pub async fn symbolicate_v5(
-    contents: web::Bytes,
-    symbol_manager: web::Data<Arc<SymbolManager>>,
-) -> impl Responder {
-    let request_json = std::str::from_utf8(&contents).unwrap();
-    symbol_manager
-        .get_ref()
-        .query_json_api("/symbolicate/v5", request_json)
-        .await
-}
-
-pub async fn asm_v1(
-    contents: web::Bytes,
-    symbol_manager: web::Data<Arc<SymbolManager>>,
-) -> impl Responder {
-    let request_json = std::str::from_utf8(&contents).unwrap();
-    symbol_manager
-        .get_ref()
-        .query_json_api("/asm/v1", request_json)
-        .await
-}
 
 #[derive(Error, Debug)]
 pub enum VersionError {
