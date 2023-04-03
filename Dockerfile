@@ -24,7 +24,7 @@ WORKDIR /app
 # Let's start with preparing the dependencies.
 FROM chef as planner
 # Copy the project files into the planner.
-COPY . .
+COPY --chown=app:app . .
 # Compute a lock-like file for our project
 RUN cargo chef prepare  --recipe-path recipe.json
 
@@ -39,7 +39,14 @@ RUN cargo chef cook --release --recipe-path recipe.json
 
 # Up to this point, if our dependency tree stays the same,
 # all layers should be cached.
-COPY . .
+COPY --chown=app:app . .
+
+# These environment variables from GitHub Actions are needed when generating the
+# version file. We pass it using the "arguments" mechanism from docker.
+ARG github_build_url
+ARG github_run_id
+ENV GITHUB_BUILD_URL=${github_build_url}
+ENV GITHUB_RUN_ID=${github_run_id}
 
 # Build our project.
 RUN cargo build --release --bin reliost
