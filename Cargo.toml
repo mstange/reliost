@@ -3,6 +3,7 @@ name = "reliost"
 version = "0.1.0"
 edition = "2021"
 license = "Apache-2.0 OR MIT"
+repository = "https://github.com/mstange/reliost/"
 readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -15,6 +16,7 @@ actix-cors = "0.6.4"
 actix-web = "4"
 config = "0.13.3"
 serde = { version = "1", features = ["derive"] }
+thiserror = "1.0"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1"
 tracing-actix-web = "0.7"

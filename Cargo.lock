@@ -1559,6 +1559,7 @@ dependencies = [
  "config",
  "reqwest",
  "serde",
+ "thiserror",
  "tokio",
  "tracing",
  "tracing-actix-web",
