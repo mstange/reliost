@@ -7,10 +7,6 @@ pub async fn greet() -> impl Responder {
     "Hello world!".to_string()
 }
 
-pub async fn health_check() -> impl Responder {
-    HttpResponse::Ok()
-}
-
 pub async fn symbolicate_v5(
     contents: web::Bytes,
     symbol_manager: web::Data<Arc<SymbolManager>>,
