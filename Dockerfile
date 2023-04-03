@@ -1,7 +1,24 @@
+ARG userid=10001
+ARG groupid=10001
+
 # First, we need to build and cache our dependencies so it doesn't have to
 # rebuild them every time we build this Dockerfile.
 # See https://github.com/LukeMathWalker/cargo-chef for more information.
 FROM lukemathwalker/cargo-chef:latest-rust-slim-bullseye as chef
+
+# ARG statements goe out of scope after each FROM statement. We need to
+# re-declare them on each stage where we want to use.
+ARG userid
+ARG groupid
+
+# Create the user we'll run the build commands with. Its home is configured to
+# be the directory /app. It helps avoiding warnings when running tests and
+# building the app later.
+RUN set -x \
+  && groupadd --gid $groupid app \
+  && useradd -g app --uid $userid --shell /usr/sbin/nologin --create-home --home-dir /app app
+
+USER app
 WORKDIR /app
 
 # Let's start with preparing the dependencies.
@@ -29,10 +46,21 @@ RUN cargo build --release --bin reliost
 
 # This is the final image that will be used in production.
 FROM debian:bullseye-slim AS runtime
-WORKDIR /app
 ENV PORT=8080
 # Set the app environment to production.
 ENV APP_ENVIRONMENT="production"
+
+# ARG statements goe out of scope after each FROM statement. We need to
+# re-declare them on each stage where we want to use.
+ARG userid
+ARG groupid
+
+# We create the runtime user.
+RUN set -x \
+  && groupadd --gid $groupid app \
+  && useradd -g app --uid $userid --shell /usr/sbin/nologin --create-home --home-dir /app app
+
+WORKDIR /app
 
 # Install OpenSSL - it is dynamically linked by some of our dependencies
 # Install ca-certificates - it is needed to verify TLS certificates
@@ -53,6 +81,9 @@ COPY configuration configuration
 
 # This is the default port as configured above.
 EXPOSE $PORT
+
+# Set the user to app again, this time on the final runtime image.
+USER app
 
 # Run the application.
 ENTRYPOINT ["./reliost"]
