@@ -1,7 +1,7 @@
 use std::{net::TcpListener, sync::Arc};
 
 use crate::configuration::Settings;
-use crate::routes::{asm_v1, greet, health_check, heartbeat, lbheartbeat, symbolicate_v5, version};
+use crate::routes::{asm_v1, greet, heartbeat, lbheartbeat, symbolicate_v5, version};
 use crate::symbol_manager::create_symbol_manager;
 use actix_cors::Cors;
 use actix_web::{dev::Server, web, App, HttpServer};
@@ -18,7 +18,6 @@ pub fn run(listener: TcpListener, settings: Settings) -> Result<Server, std::io:
             .wrap(cors)
             .wrap(TracingLogger::default())
             .route("/", web::get().to(greet))
-            .route("/health_check", web::get().to(health_check))
             .route("/symbolicate/v5", web::post().to(symbolicate_v5))
             .route("/asm/v1", web::post().to(asm_v1))
             // Dockerflow requirements. See:
