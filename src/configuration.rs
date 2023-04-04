@@ -88,6 +88,15 @@ pub fn get_configuration() -> Result<Settings, ConfigError> {
         .add_source(config::File::from(
             configuration_directory.join(environment_filename),
         ))
+        // Add in settings from environment variables (with a prefix of RELIOST
+        // and '_' as separator)
+        // E.g. `RELIOST_SERVER_PORT=5001 would set `Settings.server.port`.
+        // Note that env vars take precedence over other config files.
+        .add_source(
+            config::Environment::with_prefix("RELIOST")
+                .prefix_separator("_")
+                .separator("_"),
+        )
         .build()?;
     settings.try_deserialize::<Settings>()
 }
