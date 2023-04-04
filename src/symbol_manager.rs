@@ -1,6 +1,7 @@
 use crate::configuration::Settings;
 use wholesym::{SymbolManager, SymbolManagerConfig};
 
+#[tracing::instrument(name = "Create symbol manager", skip_all)]
 pub fn create_symbol_manager(settings: Settings) -> SymbolManager {
     let mut config = SymbolManagerConfig::default().verbose(true);
     if let Some(symbols) = settings.symbols {

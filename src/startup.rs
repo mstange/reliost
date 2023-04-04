@@ -7,6 +7,7 @@ use actix_cors::Cors;
 use actix_web::{dev::Server, web, App, HttpServer};
 use tracing_actix_web::TracingLogger;
 
+#[tracing::instrument(skip_all)]
 pub fn run(listener: TcpListener, settings: Settings) -> Result<Server, std::io::Error> {
     let symbol_manager = Arc::new(create_symbol_manager(settings));
     let server = HttpServer::new(move || {

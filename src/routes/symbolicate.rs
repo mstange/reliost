@@ -2,6 +2,7 @@ use actix_web::{web, Responder};
 use std::sync::Arc;
 use wholesym::SymbolManager;
 
+#[tracing::instrument(name = "Symbolicate v5", skip(contents, symbol_manager))]
 pub async fn symbolicate_v5(
     contents: web::Bytes,
     symbol_manager: web::Data<Arc<SymbolManager>>,

@@ -23,6 +23,7 @@ impl From<io::Error> for VersionError {
 }
 
 /// "Respond to `/__version__` with the contents of /app/version.json."
+#[tracing::instrument(name = "Get version")]
 pub async fn version() -> Result<HttpResponse, VersionError> {
     // Cargo sets the OUT_DIR to appropriate directory for debug and leaves it empty for release.
     // Build script places it to the root directory if it's release.
