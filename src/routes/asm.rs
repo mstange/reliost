@@ -2,6 +2,7 @@ use actix_web::{web, Responder};
 use std::sync::Arc;
 use wholesym::SymbolManager;
 
+#[tracing::instrument(name = "Asm v1", skip(contents, symbol_manager))]
 pub async fn asm_v1(
     contents: web::Bytes,
     symbol_manager: web::Data<Arc<SymbolManager>>,
