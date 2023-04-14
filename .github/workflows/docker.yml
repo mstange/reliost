@@ -27,18 +27,33 @@ jobs:
         with:
           name: docker-image
           path: ./image.tar
-  # TODO: Publish it to either Docker Hub or Google Artifact Registry.
   publish:
     runs-on: ubuntu-latest
     needs: build
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/production' }}
+    permissions:
+        contents: 'read'
+        id-token: 'write'
     steps:
-      - uses: actions/download-artifact@v3
+      # - uses: actions/download-artifact@v3
+      #   with:
+      #     name: docker-image
+      # - name: Display structure of downloaded files
+      #   run: ls -R
+      # - name: Load archived Docker image
+      #   run: docker load -i ./image.tar
+      - uses: actions/checkout@v3
+      - name: Auth to App Engine
+        id: 'auth'
+        uses: 'google-github-actions/auth@v1'
         with:
-          name: docker-image
-      - name: Display structure of downloaded files
-        run: ls -R
-      - name: Load archived Docker image
-        run: docker load -i ./image.tar
-      - name: Publish Docker Image to Docker Hub
-        run: echo This will push images in the future.
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      - name: Deploy to App Engine
+        id: deploy
+        uses: google-github-actions/deploy-appengine@v1
+        with:
+          project_id: ${{ secrets.PROJECT_ID }}
+          deliverables: app.yaml
+      # Example of using the output
+      - id: 'test'
+        run: 'curl "${{ steps.deploy.outputs.url }}"'
