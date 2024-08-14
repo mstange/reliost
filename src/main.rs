@@ -10,6 +10,9 @@ async fn main() -> std::io::Result<()> {
     init_subscriber(subscriber);
 
     let settings = get_configuration().expect("Failed to read configuration");
-    let address = format!("{}:{}", settings.server.host, settings.server.port);
-    run(TcpListener::bind(address)?, settings)?.await
+    run(
+        TcpListener::bind((settings.server.host.as_str(), settings.server.port))?,
+        settings,
+    )?
+    .await
 }
