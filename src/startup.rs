@@ -1,4 +1,4 @@
-use std::{net::TcpListener, sync::Arc};
+use std::net::TcpListener;
 
 use crate::configuration::Settings;
 use crate::routes::{asm_v1, greet, heartbeat, lbheartbeat, symbolicate_v5, version};
@@ -9,7 +9,8 @@ use tracing_actix_web::TracingLogger;
 
 #[tracing::instrument(skip_all)]
 pub fn run(listener: TcpListener, settings: Settings) -> Result<Server, std::io::Error> {
-    let symbol_manager = Arc::new(create_symbol_manager(settings));
+    let symbol_manager = create_symbol_manager(settings);
+    let app_data = web::Data::new(symbol_manager);
     let server = HttpServer::new(move || {
         let cors = Cors::default()
             .allow_any_origin()
@@ -26,7 +27,7 @@ pub fn run(listener: TcpListener, settings: Settings) -> Result<Server, std::io:
             .route("/__version__", web::get().to(version))
             .route("/__heartbeat__", web::get().to(heartbeat))
             .route("/__lbheartbeat__", web::get().to(lbheartbeat))
-            .app_data(web::Data::new(symbol_manager.clone()))
+            .app_data(app_data.clone())
     })
     .listen(listener)?
     .run();
