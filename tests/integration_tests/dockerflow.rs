@@ -8,7 +8,7 @@ async fn heartbeat_works() {
 
     let client = reqwest::Client::new();
     let response = client
-        .get(&format!("http://{address}/__heartbeat__"))
+        .get(format!("http://{address}/__heartbeat__"))
         .send()
         .await
         .expect("Failed to execute request.");
@@ -22,7 +22,7 @@ async fn lbheartbeat_works() {
 
     let client = reqwest::Client::new();
     let response = client
-        .get(&format!("http://{address}/__lbheartbeat__"))
+        .get(format!("http://{address}/__lbheartbeat__"))
         .send()
         .await
         .expect("Failed to execute request.");
