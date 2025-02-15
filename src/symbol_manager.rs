@@ -1,9 +1,11 @@
+use std::sync::Arc;
+
 use crate::configuration::Settings;
-use wholesym::{SymbolManager, SymbolManagerConfig};
+use wholesym::{SymbolManager, SymbolManagerConfig, VerboseSymbolManagerObserver};
 
 #[tracing::instrument(name = "Create symbol manager", skip_all)]
 pub fn create_symbol_manager(settings: Settings) -> SymbolManager {
-    let mut config = SymbolManagerConfig::default().verbose(true);
+    let mut config = SymbolManagerConfig::default();
     if let Some(symbols) = settings.symbols {
         if let Some(breakpad) = symbols.breakpad {
             if breakpad.servers.is_empty() {
@@ -23,5 +25,7 @@ pub fn create_symbol_manager(settings: Settings) -> SymbolManager {
             }
         }
     }
-    SymbolManager::with_config(config)
+    let mut manager = SymbolManager::with_config(config);
+    manager.set_observer(Some(Arc::new(VerboseSymbolManagerObserver::new())));
+    manager
 }
