@@ -15,6 +15,9 @@ path = "src/lib.rs"
 actix-cors = "0.7"
 actix-web = "4"
 config = "0.15"
+humantime-serde = "1.1.1"
+parse-size = "1.1.0"
+samply-quota-manager = "0.1.0"
 serde = { version = "1", features = ["derive"] }
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
