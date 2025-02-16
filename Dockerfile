@@ -4,7 +4,7 @@ ARG groupid=10001
 # First, we need to build and cache our dependencies so it doesn't have to
 # rebuild them every time we build this Dockerfile.
 # See https://github.com/LukeMathWalker/cargo-chef for more information.
-FROM lukemathwalker/cargo-chef:latest-rust-bullseye as chef
+FROM lukemathwalker/cargo-chef:latest-rust-1 AS chef
 
 # ARG statements goe out of scope after each FROM statement. We need to
 # re-declare them on each stage where we want to use.
@@ -22,14 +22,14 @@ USER app
 WORKDIR /app
 
 # Let's start with preparing the dependencies.
-FROM chef as planner
+FROM chef AS planner
 # Copy the project files into the planner.
 COPY --chown=app:app . .
 # Compute a lock-like file for our project
-RUN cargo chef prepare  --recipe-path recipe.json
+RUN cargo chef prepare --recipe-path recipe.json
 
 # Continue with building our project.
-FROM chef as builder
+FROM chef AS builder
 
 # Copy the recipe.json file from the planner stage.
 COPY --from=planner /app/recipe.json recipe.json
@@ -52,7 +52,7 @@ ENV GITHUB_RUN_ID=${github_run_id}
 RUN cargo build --release --bin reliost
 
 # This is the final image that will be used in production.
-FROM debian:bullseye-slim AS runtime
+FROM debian:bookworm-slim AS runtime
 ENV PORT=8080
 # Set the app environment to production.
 ENV APP_ENVIRONMENT="production"

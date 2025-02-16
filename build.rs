@@ -15,6 +15,8 @@ fn main() {
     // These two environment variables are being set by cargo using Cargo.toml.
     println!("cargo:rerun-if-env-changed=CARGO_PKG_REPOSITORY");
     println!("cargo:rerun-if-env-changed=CARGO_PKG_VERSION");
+    // This environment variable is set by cargo.
+    println!("cargo:rerun-if-env-changed=CARGO_MANIFEST_DIR");
 
     generate_version_file();
 }
@@ -42,26 +44,16 @@ fn generate_version_file() {
         Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
     };
 
-    // It's not worth to add serde and serde_json build-dependency just for this.
-    // This is simple enough and works just fine.
+    // Create JSON of the shape required by Mozilla's Dockerflow specification:
+    // https://github.com/mozilla-services/Dockerflow/blob/main/docs/version_object.md
     let file_output = format!(
-        r#" {{ "source": "{}", "version": "{}", "commit": "{}", "build": "{}" }}"#,
+        r#"{{ "source": "{}", "version": "{}", "commit": "{}", "build": "{}" }}"#,
         repo_url, version, commit_hash, build_url
     );
 
-    // Use OUT_DIR for debug builds to not clutter the root directory. Output to
-    // the root directory if it's a release build so we can find and copy it quickly.
-    // This is a workaround until `--out-dir` stabilizes. See:
-    // https://github.com/rust-lang/cargo/issues/6790
-    let profile =
-        std::env::var("PROFILE").expect("Failed to find the PROFILE that is set by Cargo");
-    // PROFILE could be either debug or release.
-    let out_dir = match &*profile {
-        "release" => ".".to_string(),
-        _ => env::var("OUT_DIR").expect("Failed to find the OUT_DIR"),
-    };
-    let file_path = Path::new(&out_dir).join("version.json");
+    // We place version.json into the package root, next to Cargo.toml.
+    let file_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("version.json");
 
-    // Let's output the version.json file.
+    // Output the version.json file.
     fs::write(file_path, file_output).expect("Unable to write file");
 }

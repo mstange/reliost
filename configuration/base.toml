@@ -3,8 +3,8 @@
 servers = [
   "https://symbols.mozilla.org/try"
 ]
-cache_dir = "./symbols/"
-symindex_dir = "./symbols/"
+cache_dir = "./cache/symbols/breakpad/"
+symindex_dir = "./cache/symbols/breakpad-symindex/"
 
 # Servers from which we can download Windows .pdb, .exe and .dll files
 [symbols.windows]
@@ -12,4 +12,9 @@ servers = [
   "https://symbols.mozilla.org/try",
   "https://msdl.microsoft.com/download/symbols"
 ]
-cache_dir = "./winsymbols/"
+cache_dir = "./cache/symbols/windows/"
+
+# Settings for automatic file deletion
+[quota]
+managed_dir = "./cache/symbols"
+db_path = "./cache/symbols.db"

@@ -1,5 +1,6 @@
 use actix_web::{error, http::header::ContentType, HttpResponse, Responder};
-use std::{env, fs, io, path::Path};
+use std::path::{Path, PathBuf};
+use std::{env, fs, io};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -23,10 +24,14 @@ impl From<io::Error> for VersionError {
 }
 
 /// "Respond to `/__version__` with the contents of /app/version.json."
+#[tracing::instrument(name = "Get version")]
 pub async fn version() -> Result<HttpResponse, VersionError> {
-    // Cargo sets the OUT_DIR to appropriate directory for debug and leaves it empty for release.
-    // Build script places it to the root directory if it's release.
-    let out_dir = env::var("OUT_DIR").unwrap_or_else(|_| ".".to_string());
+    // Our build.rs script places version.json in $CARGO_MANIFEST_DIR,
+    // i.e. next to Cargo.toml.
+    // If we're run via `cargo run`, $CARGO_MANIFEST_DIR is set to that
+    // directory, otherwise we check the working directory instead.
+    let out_dir = env::var_os("CARGO_MANIFEST_DIR")
+        .map_or_else(|| env::current_dir().unwrap(), PathBuf::from);
     let path = Path::new(&out_dir).join("version.json");
 
     // This is a very small file, that's why it's not a problem to directly read it.

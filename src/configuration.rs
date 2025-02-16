@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, time::Duration};
 
 use config::ConfigError;
 use serde::Deserialize;
@@ -7,6 +7,7 @@ use serde::Deserialize;
 pub struct Settings {
     pub server: ServerSettings,
     pub symbols: Option<SymbolSettings>,
+    pub quota: Option<QuotaSettings>,
 }
 
 #[derive(Deserialize)]
@@ -38,6 +39,40 @@ pub struct WindowsSymbolSettings {
     pub cache_dir: PathBuf,
 }
 
+/// Settings for automatic file deletion
+#[derive(Debug, Clone, Deserialize)]
+pub struct QuotaSettings {
+    /// The root of the managed directory tree.
+    pub managed_dir: PathBuf,
+    /// The .db file in which the list of files should be stored. Must be outside of `managed_dir`.
+    pub db_path: PathBuf,
+    /// The maximum size of the managed directory, as a string that's
+    /// parsed by the [parse-size crate](https://crates.io/crates/parse-size).
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_bytes")]
+    pub size_limit: Option<u64>,
+    /// The maximum age of each file in the managed directory, as a string
+    /// that's parsed by [`humantime::parse_duration`](https://docs.rs/humantime/latest/humantime/fn.parse_duration.html).
+    #[serde(default)]
+    #[serde(with = "humantime_serde")]
+    pub age_limit: Option<Duration>,
+}
+
+fn deserialize_bytes<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let maybe_string = Option::<String>::deserialize(deserializer)?;
+    let maybe_bytes = match maybe_string {
+        Some(s) => {
+            let bytes = parse_size::parse_size(s).map_err(serde::de::Error::custom)?;
+            Some(bytes)
+        }
+        None => None,
+    };
+    Ok(maybe_bytes)
+}
+
 /// The possible runtime environment for our application.
 pub enum Environment {
     Local,
@@ -67,6 +102,8 @@ impl TryFrom<String> for Environment {
         }
     }
 }
+
+#[tracing::instrument(name = "Get configuration", skip_all)]
 pub fn get_configuration() -> Result<Settings, ConfigError> {
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
     let configuration_directory = base_path.join("configuration");
@@ -86,6 +123,15 @@ pub fn get_configuration() -> Result<Settings, ConfigError> {
         .add_source(config::File::from(
             configuration_directory.join(environment_filename),
         ))
+        // Add in settings from environment variables (with a prefix of RELIOST
+        // and '_' as separator)
+        // E.g. `RELIOST_SERVER_PORT=5001 would set `Settings.server.port`.
+        // Note that env vars take precedence over other config files.
+        .add_source(
+            config::Environment::with_prefix("RELIOST")
+                .prefix_separator("_")
+                .separator("_"),
+        )
         .build()?;
     settings.try_deserialize::<Settings>()
 }

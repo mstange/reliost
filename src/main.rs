@@ -10,6 +10,17 @@ async fn main() -> std::io::Result<()> {
     init_subscriber(subscriber);
 
     let settings = get_configuration().expect("Failed to read configuration");
-    let address = format!("{}:{}", settings.server.host, settings.server.port);
-    run(TcpListener::bind(address)?, settings)?.await
+    let (server, quota_manager) = run(
+        TcpListener::bind((settings.server.host.as_str(), settings.server.port))?,
+        settings,
+    )?;
+
+    server.await?;
+
+    if let Some(quota_manager) = quota_manager {
+        // Shut down the quota manager file deletion thread.
+        quota_manager.finish().await;
+    }
+
+    Ok(())
 }

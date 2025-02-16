@@ -12,19 +12,21 @@ readme = "README.md"
 path = "src/lib.rs"
 
 [dependencies]
-actix-cors = "0.6.4"
+actix-cors = "0.7"
 actix-web = "4"
-config = "0.13.3"
+config = "0.15"
+humantime-serde = "1.1.1"
+parse-size = "1.1.0"
+samply-quota-manager = "0.1.0"
 serde = { version = "1", features = ["derive"] }
-thiserror = "1.0"
+thiserror = "2"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1"
 tracing-actix-web = "0.7"
 tracing-bunyan-formatter = "0.3"
-tracing-log = "0.1.3"
+tracing-log = "0.2"
 tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
-# wholesym = "0.3.0"
-wholesym = { git = "https://github.com/mstange/samply", rev = "0c4fea3" }
+wholesym = { version = "0.8", features = ["api"] }
 
 [dev-dependencies]
-reqwest = "0.11.14"
+reqwest = "0.12"
