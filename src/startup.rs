@@ -34,6 +34,7 @@ pub fn run(
             .route("/__heartbeat__", web::get().to(heartbeat))
             .route("/__lbheartbeat__", web::get().to(lbheartbeat))
             .app_data(app_data.clone())
+            .app_data(web::PayloadConfig::new(100 * 1000 * 1000)) // 100 MB
     })
     .listen(listener)?
     .run();
