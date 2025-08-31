@@ -44,10 +44,10 @@ fn create_symbol_manager_config(settings: &Settings) -> SymbolManagerConfig {
     if let Some(symbols) = settings.symbols.as_ref() {
         if let Some(breakpad) = symbols.breakpad.as_ref() {
             if breakpad.servers.is_empty() {
-                config = config.breakpad_symbols_dir(&breakpad.cache_dir);
+                config = config.breakpad_symbol_dir(&breakpad.cache_dir);
             } else {
                 for server_url in &breakpad.servers {
-                    config = config.breakpad_symbols_server(server_url, breakpad.cache_dir.clone());
+                    config = config.breakpad_symbol_server(server_url, breakpad.cache_dir.clone());
                 }
             }
             if let Some(symindex_dir) = &breakpad.symindex_dir {
@@ -56,7 +56,7 @@ fn create_symbol_manager_config(settings: &Settings) -> SymbolManagerConfig {
         }
         if let Some(windows) = symbols.windows.as_ref() {
             for server_url in &windows.servers {
-                config = config.windows_symbols_server(server_url, windows.cache_dir.clone());
+                config = config.windows_symbol_server(server_url, windows.cache_dir.clone());
             }
         }
     }
