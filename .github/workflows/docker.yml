@@ -14,7 +14,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build the Docker image
         run: |
           docker build . --file Dockerfile --tag reliost:dev \
@@ -35,14 +35,14 @@ jobs:
         contents: 'read'
         id-token: 'write'
     steps:
-      # - uses: actions/download-artifact@v4
+      # - uses: actions/download-artifact@v5
       #   with:
       #     name: docker-image
       # - name: Display structure of downloaded files
       #   run: ls -R
       # - name: Load archived Docker image
       #   run: docker load -i ./image.tar
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Auth to App Engine
         id: 'auth'
         uses: 'google-github-actions/auth@v1'
