@@ -21,7 +21,8 @@ pub fn run(
         let cors = Cors::default()
             .allow_any_origin()
             .allowed_methods(vec!["GET", "POST", "OPTION"])
-            .allow_any_header();
+            .allow_any_header()
+            .max_age(86400);
         App::new()
             .wrap(cors)
             .wrap(TracingLogger::default())
