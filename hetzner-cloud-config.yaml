@@ -1,0 +1,446 @@
+#cloud-config
+# Hetzner cloud configuration for a reliost symbol server
+#
+# Security features:
+# - SSH on port 2222 with key-only auth
+# - fail2ban enabled
+# - UFW firewall configured
+# - Non-root service user
+# - Systemd hardening
+
+users:
+  - name: holu
+    groups: [users, admin, sudo]
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJZgmqvVw81vQAyXEs3sif33ZPKV/CN2wr3M/+dRllX5 markus.stange@gmail.com
+
+  - name: reliost
+    groups: [users]
+    shell: /bin/bash
+    create_home: true
+
+packages:
+  # Security
+  - fail2ban
+  - ufw
+  - unattended-upgrades
+
+  # Runtime dependencies
+  - openssl
+  - ca-certificates
+  - curl
+  - xz-utils
+
+  # Web server and SSL
+  - nginx
+  - certbot
+  - python3-certbot-nginx
+
+  # Monitoring and utils
+  - htop
+  - net-tools
+  - vim
+  - tmux
+  - jq
+
+package_update: true
+package_upgrade: true
+
+write_files:
+  # Enhanced fail2ban configuration
+  - path: /etc/fail2ban/jail.local
+    content: |
+      [DEFAULT]
+      bantime = 3600
+      findtime = 600
+      maxretry = 5
+
+      [sshd]
+      enabled = true
+      port = 2222
+      banaction = iptables-multiport
+      maxretry = 3
+
+      [nginx-http-auth]
+      enabled = true
+
+      [nginx-noscript]
+      enabled = true
+
+      [nginx-badbots]
+      enabled = true
+
+      [nginx-noproxy]
+      enabled = true
+
+  # Nginx configuration for Reliost
+  - path: /etc/nginx/sites-available/reliost
+    content: |
+      # Reliost Symbol Server
+      # Initial HTTP configuration - SSL will be added by certbot
+      server {
+          listen 80;
+          server_name _;  # Replace with your domain
+
+          # Security headers
+          add_header X-Frame-Options "SAMEORIGIN" always;
+          add_header X-Content-Type-Options "nosniff" always;
+          add_header X-XSS-Protection "1; mode=block" always;
+          add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+          # Rate limiting zones (defined in nginx.conf)
+          limit_req zone=general burst=1000 nodelay;
+
+          location / {
+              proxy_pass http://127.0.0.1:8080;
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade $http_upgrade;
+              proxy_set_header Connection 'upgrade';
+              proxy_set_header Host $host;
+              proxy_cache_bypass $http_upgrade;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_set_header X-Forwarded-Proto $scheme;
+
+              # Timeouts for symbol operations
+              proxy_connect_timeout 300s;
+              proxy_send_timeout 300s;
+              proxy_read_timeout 300s;
+
+              # Max body size
+              client_max_body_size 100M;
+          }
+
+          # Health endpoints (no rate limiting)
+          location ~ ^/(__heartbeat__|__lbheartbeat__|__version__)$ {
+              proxy_pass http://127.0.0.1:8080;
+              access_log off;
+          }
+      }
+
+  # Nginx rate limiting configuration
+  - path: /etc/nginx/conf.d/rate-limit.conf
+    content: |
+      # Rate limiting to prevent abuse
+      limit_req_zone $binary_remote_addr zone=general:10m rate=200r/s;
+      limit_req_status 429;
+
+  # Systemd service for Reliost
+  - path: /etc/systemd/system/reliost.service
+    content: |
+      [Unit]
+      Description=Reliost Symbol Server
+      After=network.target
+      Documentation=https://github.com/mstange/reliost
+
+      [Service]
+      Type=simple
+      User=reliost
+      Group=reliost
+      WorkingDirectory=/home/reliost/app
+
+      # Environment
+      Environment="APP_ENVIRONMENT=production"
+      Environment="RUST_LOG=info"
+      Environment="RUST_BACKTRACE=1"
+
+      ExecStart=/home/reliost/app/reliost
+      ExecReload=/bin/kill -USR1 $MAINPID
+      Restart=always
+      RestartSec=0
+      StartLimitIntervalSec=60
+      StartLimitBurst=5
+
+      # Security hardening
+      NoNewPrivileges=true
+      PrivateTmp=false
+      ProtectSystem=strict
+      ProtectHome=read-only
+      ReadWritePaths=/home/reliost/app/cache /home/reliost/logs
+      ProtectKernelTunables=true
+      ProtectKernelModules=true
+      ProtectControlGroups=true
+      RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+      RestrictNamespaces=true
+      RestrictRealtime=true
+      RestrictSUIDSGID=true
+      LockPersonality=true
+
+      # Resource limits
+      LimitNOFILE=65535
+      MemoryMax=4G
+      CPUQuota=200%
+
+      # Logging
+      StandardOutput=journal
+      StandardError=journal
+      SyslogIdentifier=reliost
+
+      [Install]
+      WantedBy=multi-user.target
+
+  # Base configuration
+  - path: /home/reliost/app/configuration/base.toml
+    content: |
+      # Servers from which we can download Breakpad .sym files
+      [symbols.breakpad]
+      servers = [
+        "https://symbols.mozilla.org/try"
+      ]
+      cache_dir = "./cache/symbols/breakpad/"
+      symindex_dir = "./cache/symbols/breakpad-symindex/"
+
+      # Servers from which we can download Windows .pdb, .exe and .dll files
+      [symbols.windows]
+      servers = [
+        "https://symbols.mozilla.org/try",
+        "https://msdl.microsoft.com/download/symbols"
+      ]
+      cache_dir = "./cache/symbols/windows/"
+
+      # Settings for automatic file deletion
+      [quota]
+      managed_dir = "./cache/symbols"
+      db_path = "./cache/symbols.db"
+    permissions: '0640'
+
+  # Production configuration
+  - path: /home/reliost/app/configuration/production.toml
+    content: |
+      [server]
+      host = "127.0.0.1"
+      port = 8080
+
+      [quota]
+      size_limit = "21 GB"
+    permissions: '0640'
+
+runcmd:
+  # SSH hardening
+  - sed -i -e '/^\(#\|\)PermitRootLogin/s/^.*$/PermitRootLogin no/' /etc/ssh/sshd_config
+  - sed -i -e '/^\(#\|\)PasswordAuthentication/s/^.*$/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i -e '/^\(#\|\)Port/s/^.*$/Port 2222/' /etc/ssh/sshd_config
+  - sed -i -e '/^\(#\|\)KbdInteractiveAuthentication/s/^.*$/KbdInteractiveAuthentication no/' /etc/ssh/sshd_config
+  - sed -i -e '/^\(#\|\)ChallengeResponseAuthentication/s/^.*$/ChallengeResponseAuthentication no/' /etc/ssh/sshd_config
+  - sed -i -e '/^\(#\|\)MaxAuthTries/s/^.*$/MaxAuthTries 2/' /etc/ssh/sshd_config
+  - sed -i -e '/^\(#\|\)AllowTcpForwarding/s/^.*$/AllowTcpForwarding no/' /etc/ssh/sshd_config
+  - sed -i -e '/^\(#\|\)X11Forwarding/s/^.*$/X11Forwarding no/' /etc/ssh/sshd_config
+  - sed -i -e '/^\(#\|\)AllowAgentForwarding/s/^.*$/AllowAgentForwarding no/' /etc/ssh/sshd_config
+  - sed -i -e '/^\(#\|\)AuthorizedKeysFile/s/^.*$/AuthorizedKeysFile .ssh\/authorized_keys/' /etc/ssh/sshd_config
+  - sed -i '$a AllowUsers holu' /etc/ssh/sshd_config
+
+  # Firewall setup
+  - ufw --force enable
+  - ufw allow 2222/tcp
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw default deny incoming
+  - ufw default allow outgoing
+
+  # Fail2ban
+  - systemctl enable fail2ban
+  - systemctl start fail2ban
+
+  # Create directory structure
+  - mkdir -p /home/reliost/app/cache/symbols/breakpad
+  - mkdir -p /home/reliost/app/cache/symbols/breakpad-symindex
+  - mkdir -p /home/reliost/app/cache/symbols/windows
+  - mkdir -p /home/reliost/logs
+  - chown -R reliost:reliost /home/reliost/
+  - chmod 750 /home/reliost
+
+  # Create update script for holu user (who has sudo access)
+  - |
+    cat > /home/holu/update.sh << 'EOF'
+    #!/bin/bash
+    set -euo pipefail
+
+    if [ $# -ne 1 ]; then
+        echo "Usage: $0 <version>"
+        echo "Example: $0 0.3.0"
+        exit 1
+    fi
+
+    VERSION="$1"
+    echo "Updating reliost to v${VERSION}..."
+
+    # Download new binary as reliost user
+    sudo -u reliost bash -c "
+      curl --proto '=https' --tlsv1.2 -LsSf \
+        'https://github.com/mstange/reliost/releases/download/v${VERSION}/reliost-x86_64-unknown-linux-gnu.tar.xz' \
+      | tar -xJ --strip-components=1 -C /tmp reliost-x86_64-unknown-linux-gnu/reliost
+      mv /tmp/reliost /home/reliost/app/reliost.new
+    "
+
+    # Stop service, swap binary, restart
+    sudo systemctl stop reliost
+    sudo -u reliost mv /home/reliost/app/reliost /home/reliost/app/reliost.prev
+    sudo -u reliost mv /home/reliost/app/reliost.new /home/reliost/app/reliost
+    sudo systemctl start reliost
+
+    sleep 3
+    if sudo systemctl is-active --quiet reliost; then
+        echo "✓ Update to v${VERSION} successful"
+        sudo -u reliost rm /home/reliost/app/reliost.prev
+    else
+        echo "✗ Service failed to start, rolling back..."
+        sudo -u reliost mv /home/reliost/app/reliost.prev /home/reliost/app/reliost
+        sudo systemctl start reliost
+        exit 1
+    fi
+    EOF
+
+  # Create SSL setup script for holu user
+  - |
+    cat > /home/holu/setup-ssl.sh << 'EOF'
+    #!/bin/bash
+    set -euo pipefail
+
+    if [ $# -ne 2 ]; then
+        echo "Usage: $0 <domain> <email>"
+        echo "Example: $0 symbols.example.com admin@example.com"
+        exit 1
+    fi
+
+    DOMAIN=$1
+    EMAIL=$2
+
+    echo "Setting up SSL for $DOMAIN..."
+
+    # Update Nginx with domain
+    sudo sed -i "s/server_name _;/server_name $DOMAIN;/" /etc/nginx/sites-available/reliost
+    sudo nginx -t
+    sudo systemctl reload nginx
+
+    # Get certificate
+    sudo certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "$EMAIL" \
+      --redirect --hsts --staple-ocsp
+
+    echo "✓ SSL configured successfully!"
+    echo "Your service will be available at https://$DOMAIN"
+    EOF
+
+  - |
+    cat > /home/holu/status.sh << 'EOF'
+    #!/bin/bash
+    echo "=== Reliost Status ==="
+    echo "Service: $(systemctl is-active reliost)"
+    echo "Uptime: $(systemctl show reliost --property=ActiveEnterTimestamp --value)"
+    echo "Memory: $(systemctl show reliost --property=MemoryCurrent --value | numfmt --to=iec)"
+    echo ""
+    echo "=== Health Check ==="
+    curl -s http://localhost:8080/__heartbeat__ && echo " ✓" || echo " ✗"
+    echo ""
+    echo "=== Recent Logs ==="
+    sudo journalctl -u reliost -n 10 --no-pager
+    EOF
+
+  - |
+    cat > /home/holu/SETUP.md << 'EOF'
+    # Reliost Setup Checklist
+
+    ## ✅ Automated (Done by cloud-init)
+    - [x] System packages installed
+    - [x] SSH hardened (port 2222, key-only)
+    - [x] Firewall configured (UFW)
+    - [x] Fail2ban configured
+    - [x] Nginx installed
+    - [x] Systemd service configured
+    - [x] Directory structure created
+    - [x] Configuration files written
+
+    ## 📋 Manual Steps Required
+
+    ### 1. Initial Connection
+    ```bash
+    ssh -p 2222 holu@<server-ip>
+    ```
+
+    ### 2. Install Reliost binary
+    ```bash
+    sudo -u reliost bash -c "
+      curl --proto '=https' --tlsv1.2 -LsSf \
+        https://github.com/mstange/reliost/releases/download/v0.2.0/reliost-x86_64-unknown-linux-gnu.tar.xz \
+      | tar -xJ --strip-components=1 -C /home/reliost/app
+    "
+    ```
+
+    ### 3. Start the service
+    ```bash
+    sudo systemctl start reliost
+    sudo systemctl status reliost
+    ```
+
+    ### 4. Configure DNS
+    Point your domain to this server's IP.
+
+    ### 5. Setup SSL
+    ```bash
+    ./setup-ssl.sh symbols.yourdomain.com your@email.com
+    ```
+
+    ### 6. Verify
+    ```bash
+    ./status.sh
+    curl https://yourdomain/__heartbeat__
+    curl https://yourdomain/__version__
+    ```
+
+    ## 🔄 Update Procedure
+    ```bash
+    # Run as holu user
+    ./update.sh 0.3.0
+    ```
+
+    ## 📊 Monitoring
+    - `./status.sh` — quick status check
+    - `sudo journalctl -u reliost -f` — live logs
+    - `htop` — resource usage
+    - `df -h /home/reliost/app/cache` — disk usage
+    EOF
+
+  # Set ownership and permissions
+  - chown -R reliost:reliost /home/reliost/
+  - chown holu:holu /home/holu/setup-ssl.sh /home/holu/update.sh /home/holu/status.sh /home/holu/SETUP.md
+  - chmod +x /home/holu/setup-ssl.sh /home/holu/update.sh /home/holu/status.sh
+
+  # Configure Nginx
+  - ln -sf /etc/nginx/sites-available/reliost /etc/nginx/sites-enabled/
+  - rm -f /etc/nginx/sites-enabled/default
+  - nginx -t
+  - systemctl enable nginx
+  - systemctl start nginx
+
+  # System limits
+  - echo "reliost soft nofile 65535" >> /etc/security/limits.conf
+  - echo "reliost hard nofile 65535" >> /etc/security/limits.conf
+
+  # Enable systemd service (but don't start - binary not installed yet)
+  - systemctl daemon-reload
+  - systemctl enable reliost.service
+
+  # Configure automatic security updates
+  - echo 'Unattended-Upgrade::Automatic-Reboot "false";' >> /etc/apt/apt.conf.d/50unattended-upgrades
+  - echo 'Unattended-Upgrade::Automatic-Reboot-Time "02:00";' >> /etc/apt/apt.conf.d/50unattended-upgrades
+
+  - |
+    cat << EOF > /etc/motd
+    ========================================
+    Reliost Symbol Server
+    ========================================
+
+    Setup checklist: /home/holu/SETUP.md
+
+    Quick start:
+    1. Install binary (see SETUP.md step 2)
+    2. sudo systemctl start reliost
+    3. ./setup-ssl.sh <domain> <email>
+
+    SSH is on port 2222
+    ========================================
+    EOF
+
+  # Final reboot to apply all changes
+  - reboot
