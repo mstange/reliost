@@ -1,3 +1,4 @@
+mod channel_writer;
 pub mod configuration;
 pub mod logging;
 pub mod routes;
