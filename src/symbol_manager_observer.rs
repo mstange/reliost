@@ -30,8 +30,7 @@ impl SymbolManagerObserver for QuotaManagingSymbolManagerObserver {
     }
 
     fn on_download_started(&self, download_id: u64) {
-        let urls = self.urls.lock().unwrap();
-        let url = urls.get(&download_id).unwrap();
+        let url = self.urls.lock().unwrap().get(&download_id).unwrap().clone();
         tracing::info!(url, "Downloading from URL");
     }
 
