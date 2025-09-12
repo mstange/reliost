@@ -13,20 +13,25 @@ path = "src/lib.rs"
 
 [dependencies]
 actix-cors = "0.7"
-actix-web = "4"
+actix-web = { version = "4", features = ["compress-gzip", "compress-brotli"] }
+bytes = "1.10.1"
 config = "0.15"
 humantime-serde = "1.1.1"
 parse-size = "1.1.0"
 samply-quota-manager = "0.1.0"
 serde = { version = "1", features = ["derive"] }
+serde_json = "1.0.143"
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tokio-stream = "0.1.17"
+tokio-util = { version = "0.7.16", features = ["io", "io-util"] }
 tracing = "0.1"
 tracing-actix-web = "0.7"
 tracing-bunyan-formatter = "0.3"
 tracing-log = "0.2"
 tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
-wholesym = { git = "https://github.com/mstange/samply", rev = "5489fcef028e40cb646ca776502a25e2b51afda6", features = ["api"] }
+# wholesym = { path = "../samply/wholesym", features = ["api"] }
+wholesym = { git = "https://github.com/mstange/samply", rev = "477a90f2d31c1b4e6eb281a22009db4345aeec4d", features = ["api"] }
 
 [dev-dependencies]
 reqwest = "0.12"

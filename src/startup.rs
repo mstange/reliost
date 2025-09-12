@@ -2,7 +2,7 @@ use std::net::TcpListener;
 use std::sync::Arc;
 
 use actix_cors::Cors;
-use actix_web::{dev::Server, web, App, HttpServer};
+use actix_web::{dev::Server, middleware::Compress, web, App, HttpServer};
 use samply_quota_manager::QuotaManager;
 use tracing_actix_web::TracingLogger;
 
@@ -24,6 +24,7 @@ pub fn run(
             .allow_any_header()
             .max_age(86400);
         App::new()
+            .wrap(Compress::default())
             .wrap(cors)
             .wrap(TracingLogger::default())
             .route("/", web::get().to(greet))
