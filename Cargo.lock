@@ -2397,7 +2397,7 @@ checksum = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f"
 [[package]]
 name = "samply-api"
 version = "0.24.0"
-source = "git+https://github.com/mstange/samply?rev=477a90f2d31c1b4e6eb281a22009db4345aeec4d#477a90f2d31c1b4e6eb281a22009db4345aeec4d"
+source = "git+https://github.com/mstange/samply?rev=4a5afec57b7c68b37ecde12b5a258de523e89463#4a5afec57b7c68b37ecde12b5a258de523e89463"
 dependencies = [
  "samply-symbols",
  "serde",
@@ -2425,7 +2425,7 @@ dependencies = [
 [[package]]
 name = "samply-symbols"
 version = "0.24.1"
-source = "git+https://github.com/mstange/samply?rev=477a90f2d31c1b4e6eb281a22009db4345aeec4d#477a90f2d31c1b4e6eb281a22009db4345aeec4d"
+source = "git+https://github.com/mstange/samply?rev=4a5afec57b7c68b37ecde12b5a258de523e89463#4a5afec57b7c68b37ecde12b5a258de523e89463"
 dependencies = [
  "addr2line 0.25.0",
  "bitflags",
@@ -3347,7 +3347,7 @@ dependencies = [
 [[package]]
 name = "wholesym"
 version = "0.8.1"
-source = "git+https://github.com/mstange/samply?rev=477a90f2d31c1b4e6eb281a22009db4345aeec4d#477a90f2d31c1b4e6eb281a22009db4345aeec4d"
+source = "git+https://github.com/mstange/samply?rev=4a5afec57b7c68b37ecde12b5a258de523e89463#4a5afec57b7c68b37ecde12b5a258de523e89463"
 dependencies = [
  "async-compression",
  "bytes",
