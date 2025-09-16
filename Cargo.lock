@@ -2187,6 +2187,7 @@ dependencies = [
  "actix-web",
  "bytes",
  "config",
+ "flate2",
  "humantime-serde",
  "parse-size",
  "reqwest",
