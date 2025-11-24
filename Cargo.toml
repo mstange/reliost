@@ -13,9 +13,10 @@ path = "src/lib.rs"
 
 [dependencies]
 actix-cors = "0.7"
-actix-web = { version = "4", features = ["compress-gzip", "compress-brotli"] }
+actix-web = "4"
 bytes = "1.10.1"
 config = "0.15"
+flate2 = "1.1.2"
 humantime-serde = "1.1.1"
 parse-size = "1.1.0"
 samply-quota-manager = "0.1.0"
