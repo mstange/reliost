@@ -569,9 +569,9 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
 name = "cpp_demangle"
-version = "0.4.4"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96e58d342ad113c2b878f16d5d034c03be492ae460cdbc02b7f0f2284d310c7d"
+checksum = "0667304c32ea56cb4cd6d2d7c0cfe9a2f8041229db8c033af7f8d69492429def"
 dependencies = [
  "cfg-if",
 ]
@@ -785,9 +785,9 @@ checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 
 [[package]]
 name = "flate2"
-version = "1.1.2"
+version = "1.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a3d7db9596fecd151c5f638c0ee5d5bd487b6e0ea232e5dc96d5250f6f94b1d"
+checksum = "bfe33edd8e85a12a67454e37f8c75e730830d83e313556ab9ebf9ee7fbeb3bfb"
 dependencies = [
  "crc32fast",
  "libz-rs-sys",
@@ -1459,9 +1459,9 @@ checksum = "bfae20f6b19ad527b550c223fddc3077a547fc70cda94b9b566575423fd303ee"
 
 [[package]]
 name = "linux-perf-data"
-version = "0.11.1"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ee44f48bb8d8ac1f6e55e294b211960d118c069863e7206913d138d2ddd6175"
+checksum = "fab2acdab7737b0c69f86496747f251231321db9141827b53d964f25b150807d"
 dependencies = [
  "byteorder",
  "linear-map",
@@ -1585,9 +1585,9 @@ checksum = "32a282da65faaf38286cf3be983213fcf1d2e2a58700e808f83f4ea9a4804bc0"
 
 [[package]]
 name = "memmap2"
-version = "0.9.8"
+version = "0.9.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "843a98750cd611cc2965a8213b53b43e715f13c37a9e096c6408e69990961db7"
+checksum = "744133e4a0e0a658e1374cf3bf8e415c4052a15a111acd372764c55b4177d490"
 dependencies = [
  "libc",
 ]
@@ -1611,6 +1611,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fa76a2c86f704bdb222d66965fb3d63269ce38518b83cb0575fca855ebb6316"
 dependencies = [
  "adler2",
+ "simd-adler32",
 ]
 
 [[package]]
@@ -1961,18 +1962,18 @@ dependencies = [
 
 [[package]]
 name = "prost"
-version = "0.13.5"
+version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2796faa41db3ec313a31f7624d9286acf277b52de526150b7e69f3debf891ee5"
+checksum = "7231bd9b3d3d33c86b58adbac74b5ec0ad9f496b19d22801d773636feaa95f3d"
 dependencies = [
  "bytes",
 ]
 
 [[package]]
 name = "prost-derive"
-version = "0.13.5"
+version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a56d757972c98b346a9b766e3f02746cde6dd1cd1d1d563472929fdd74bec4d"
+checksum = "9120690fafc389a67ba3803df527d0ec9cbbc9cc45e4cc20b332996dfb672425"
 dependencies = [
  "anyhow",
  "itertools",
@@ -2398,8 +2399,9 @@ checksum = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f"
 [[package]]
 name = "samply-api"
 version = "0.24.0"
-source = "git+https://github.com/mstange/samply?rev=4a5afec57b7c68b37ecde12b5a258de523e89463#4a5afec57b7c68b37ecde12b5a258de523e89463"
+source = "git+https://github.com/mstange/samply?rev=c947d6339a9bea6c5659c6317796c5061d0fd7e6#c947d6339a9bea6c5659c6317796c5061d0fd7e6"
 dependencies = [
+ "samply-debugid",
  "samply-symbols",
  "serde",
  "serde_derive",
@@ -2408,6 +2410,26 @@ dependencies = [
  "yaxpeax-arch",
  "yaxpeax-arm",
  "yaxpeax-x86",
+]
+
+[[package]]
+name = "samply-debugid"
+version = "0.1.0"
+source = "git+https://github.com/mstange/samply?rev=c947d6339a9bea6c5659c6317796c5061d0fd7e6#c947d6339a9bea6c5659c6317796c5061d0fd7e6"
+dependencies = [
+ "debugid",
+ "uuid",
+]
+
+[[package]]
+name = "samply-object"
+version = "0.1.0"
+source = "git+https://github.com/mstange/samply?rev=c947d6339a9bea6c5659c6317796c5061d0fd7e6#c947d6339a9bea6c5659c6317796c5061d0fd7e6"
+dependencies = [
+ "debugid",
+ "object 0.37.3",
+ "samply-debugid",
+ "uuid",
 ]
 
 [[package]]
@@ -2426,7 +2448,7 @@ dependencies = [
 [[package]]
 name = "samply-symbols"
 version = "0.24.1"
-source = "git+https://github.com/mstange/samply?rev=4a5afec57b7c68b37ecde12b5a258de523e89463#4a5afec57b7c68b37ecde12b5a258de523e89463"
+source = "git+https://github.com/mstange/samply?rev=c947d6339a9bea6c5659c6317796c5061d0fd7e6#c947d6339a9bea6c5659c6317796c5061d0fd7e6"
 dependencies = [
  "addr2line 0.25.0",
  "bitflags",
@@ -2446,6 +2468,8 @@ dependencies = [
  "pdb-addr2line",
  "rangemap",
  "rustc-demangle",
+ "samply-debugid",
+ "samply-object",
  "scala-native-demangle",
  "srcsrv",
  "thiserror",
@@ -2615,6 +2639,12 @@ checksum = "b2a4719bff48cee6b39d12c020eeb490953ad2443b7055bd0b21fca26bd8c28b"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "simd-adler32"
+version = "0.3.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d66dc143e6b11c1eddc06d5c423cfc97062865baf299914ab64caa38182078fe"
 
 [[package]]
 name = "slab"
@@ -3348,7 +3378,7 @@ dependencies = [
 [[package]]
 name = "wholesym"
 version = "0.8.1"
-source = "git+https://github.com/mstange/samply?rev=4a5afec57b7c68b37ecde12b5a258de523e89463#4a5afec57b7c68b37ecde12b5a258de523e89463"
+source = "git+https://github.com/mstange/samply?rev=c947d6339a9bea6c5659c6317796c5061d0fd7e6#c947d6339a9bea6c5659c6317796c5061d0fd7e6"
 dependencies = [
  "async-compression",
  "bytes",
@@ -3363,6 +3393,7 @@ dependencies = [
  "memmap2",
  "reqwest",
  "samply-api",
+ "samply-debugid",
  "samply-symbols",
  "scopeguard",
  "serde",
@@ -3639,9 +3670,9 @@ dependencies = [
 
 [[package]]
 name = "yaxpeax-arm"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1db82aac85bc577d19b6255bf54ad97241c436eeb997ba159f399adacc5fb69e"
+checksum = "d8aa9155f0d727d10e91e5a94f68f415ec24c7a5faab4eac2386a1069e4a02d7"
 dependencies = [
  "bitvec",
  "yaxpeax-arch",
