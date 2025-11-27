@@ -22,6 +22,7 @@ pub fn run(
             .allow_any_origin()
             .allowed_methods(vec!["GET", "POST", "OPTION"])
             .allow_any_header()
+            .send_wildcard()
             .max_age(86400);
         App::new()
             .wrap(cors)
