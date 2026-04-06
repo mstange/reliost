@@ -51,8 +51,10 @@ fn generate_version_file() {
         repo_url, version, commit_hash, build_url
     );
 
-    // We place version.json into the package root, next to Cargo.toml.
-    let file_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("version.json");
+    // We place version.json into OUT_DIR so it can be embedded into the binary
+    // via include_str! in src/routes/dockerflow.rs.
+    let out_dir = env::var_os("OUT_DIR").expect("OUT_DIR not set");
+    let file_path = Path::new(&out_dir).join("version.json");
 
     // Output the version.json file.
     fs::write(file_path, file_output).expect("Unable to write file");
