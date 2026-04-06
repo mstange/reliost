@@ -37,7 +37,7 @@ objcopy --only-keep-debug "$BINARY" "$DBG_FILE"
 objcopy --strip-debug --add-gnu-debuglink="$DBG_FILE" "$BINARY"
 
 # Repack the distribution archive with the stripped binary
-ARCHIVE=$(ls target/distrib/reliost-*-${TARGET}.tar.xz)
+ARCHIVE=$(ls target/distrib/reliost-${TARGET}.tar.xz)
 TMPDIR=$(mktemp -d)
 tar -C "$TMPDIR" -xJf "$ARCHIVE"
 find "$TMPDIR" -name reliost -type f -exec cp "$BINARY" {} \;
