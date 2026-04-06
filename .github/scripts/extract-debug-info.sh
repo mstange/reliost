@@ -23,11 +23,14 @@ DBG_FILE="target/distrib/reliost-${TARGET}.so.dbg"
 SYM_FILE="target/distrib/reliost-${TARGET}.sym"
 
 # Generate Breakpad symbols before stripping
+CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}"
 dump_syms "$BINARY" \
     --inlines \
     --mapping-var="rev=${GIT_REV}" \
     --mapping-src="${SOURCE_ROOT}/(.*)" \
     --mapping-dest="git:github.com/mstange/reliost:{1}:{rev}" \
+    --mapping-src="${CARGO_HOME}/registry/src/([^/]+)/([^/]+)/(.*)" \
+    --mapping-dest="cargo:{1}:{2}:{3}" \
     > "$SYM_FILE"
 
 # Extract debug info into a separate file
