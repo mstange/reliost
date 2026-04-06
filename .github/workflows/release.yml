@@ -139,7 +139,15 @@ jobs:
       - name: Install dependencies
         run: |
           ${{ matrix.packages_install }}
+      - name: Install dump_syms
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
+        run: |
+          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/mozilla/dump_syms/releases/download/v2.3.7/dump_syms-installer.sh | sh
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
       - name: Build artifacts
+        env:
+          RUSTFLAGS: "-C force-frame-pointers=yes"
         run: |
           # Actually do builds and make zips and whatnot
           dist build ${{ needs.plan.outputs.tag-flag }} --print=linkage --output-format=json ${{ matrix.dist_args }} > dist-manifest.json
@@ -157,12 +165,20 @@ jobs:
           echo "EOF" >> "$GITHUB_OUTPUT"
 
           cp dist-manifest.json "$BUILD_MANIFEST_NAME"
+      - name: Extract debug info
+        if: ${{ runner.os == 'Linux' }}
+        id: debug-info
+        shell: bash
+        run: |
+          TARGET=$(echo "${{ join(matrix.targets, ' ') }}" | tr ' ' '\n' | head -1)
+          .github/scripts/extract-debug-info.sh "$TARGET" "${{ github.sha }}" "$GITHUB_WORKSPACE"
       - name: "Upload artifacts"
         uses: actions/upload-artifact@v6
         with:
           name: artifacts-build-local-${{ join(matrix.targets, '_') }}
           path: |
             ${{ steps.cargo-dist.outputs.paths }}
+            ${{ steps.debug-info.outputs.paths }}
             ${{ env.BUILD_MANIFEST_NAME }}
 
   # Build and package all the platform-agnostic(ish) things

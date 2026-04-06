@@ -41,3 +41,4 @@ reqwest = "0.13"
 [profile.dist]
 inherits = "release"
 lto = "thin"
+debug = 2
