@@ -8,6 +8,12 @@ pub struct Settings {
     pub server: ServerSettings,
     pub symbols: Option<SymbolSettings>,
     pub quota: Option<QuotaSettings>,
+    pub self_profiles: Option<SelfProfilesSettings>,
+}
+
+#[derive(Deserialize)]
+pub struct SelfProfilesSettings {
+    pub dir: PathBuf,
 }
 
 #[derive(Deserialize)]
