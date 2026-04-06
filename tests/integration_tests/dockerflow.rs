@@ -42,6 +42,7 @@ fn spawn_app() -> (String, JoinHandle<Result<(), std::io::Error>>) {
         },
         symbols: None,
         quota: None,
+        self_profiles: None,
     };
     let (server, _) = reliost::startup::run(listener, settings).expect("Failed to bind address.");
     let join_handle = tokio::spawn(server);
