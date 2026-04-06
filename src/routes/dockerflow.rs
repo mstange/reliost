@@ -1,53 +1,12 @@
-use actix_web::{error, http::header::ContentType, HttpResponse, Responder};
-use std::path::{Path, PathBuf};
-use std::{env, fs, io};
-use thiserror::Error;
+use actix_web::{http::header::ContentType, HttpResponse, Responder};
 
-#[derive(Error, Debug)]
-pub enum VersionError {
-    #[error("The version file could not be found.")]
-    VersionFileNotFound,
-    #[error("An error occurred while retrieving the version file: {error}")]
-    Other { error: io::Error },
-}
+const VERSION_JSON: &str = include_str!(concat!(env!("OUT_DIR"), "/version.json"));
 
-// Use the default implementation for `error_response()` method which returns 500.
-impl error::ResponseError for VersionError {}
-
-impl From<io::Error> for VersionError {
-    fn from(err: io::Error) -> VersionError {
-        match err.kind() {
-            io::ErrorKind::NotFound => VersionError::VersionFileNotFound,
-            _ => VersionError::Other { error: err },
-        }
-    }
-}
-
-/// "Respond to `/__version__` with the contents of /app/version.json."
-#[tracing::instrument(name = "Get version")]
-pub async fn version() -> Result<HttpResponse, VersionError> {
-    // Our build.rs script places version.json in $CARGO_MANIFEST_DIR,
-    // i.e. next to Cargo.toml.
-    // If we're run via `cargo run`, $CARGO_MANIFEST_DIR is set to that
-    // directory, otherwise we check the working directory instead.
-    let out_dir = env::var_os("CARGO_MANIFEST_DIR")
-        .map_or_else(|| env::current_dir().unwrap(), PathBuf::from);
-    let path = Path::new(&out_dir).join("version.json");
-
-    // This is a very small file, that's why it's not a problem to directly read it.
-    // We could cache it in the future if we need to.
-    match fs::read_to_string(path) {
-        Ok(contents) => {
-            let response = HttpResponse::Ok()
-                .content_type(ContentType::json())
-                .body(contents);
-            Ok(response)
-        }
-        Err(err) => {
-            tracing::error!("Failed to read version.json file to string. Error: {}", err);
-            Err(err.into())
-        }
-    }
+/// "Respond to `/__version__` with the contents of version.json."
+pub async fn version() -> HttpResponse {
+    HttpResponse::Ok()
+        .content_type(ContentType::json())
+        .body(VERSION_JSON)
 }
 
 /// "Respond to `/__heartbeat__` with a HTTP 200 or 5xx on error. This should check
