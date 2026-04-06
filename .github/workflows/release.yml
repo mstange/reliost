@@ -140,7 +140,7 @@ jobs:
         run: |
           ${{ matrix.packages_install }}
       - name: Install dump_syms
-        if: ${{ runner.os == 'Linux' }}
+        if: ${{ contains(matrix.targets, 'x86_64-unknown-linux-gnu') }}
         shell: bash
         run: |
           curl --proto '=https' --tlsv1.2 -LsSf https://github.com/mozilla/dump_syms/releases/download/v2.3.7/dump_syms-installer.sh | sh
@@ -166,7 +166,7 @@ jobs:
 
           cp dist-manifest.json "$BUILD_MANIFEST_NAME"
       - name: Extract debug info
-        if: ${{ runner.os == 'Linux' }}
+        if: ${{ contains(matrix.targets, 'x86_64-unknown-linux-gnu') }}
         id: debug-info
         shell: bash
         run: |
