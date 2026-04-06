@@ -38,6 +38,10 @@ packages:
   - certbot
   - python3-certbot-nginx
 
+  # Profiling
+  - linux-tools-generic
+  - linux-tools-common
+
   # Monitoring and utils
   - htop
   - net-tools
@@ -181,6 +185,63 @@ write_files:
       [Install]
       WantedBy=multi-user.target
 
+  # Continuous perf profiler script
+  # Runs two overlapping 20-second perf recordings offset by 10 seconds,
+  # converts each to profile.json.gz with samply, and atomically updates
+  # /home/reliost/profiles/latest.json.gz.
+  # Requires samply at /home/reliost/.cargo/bin/samply (install separately).
+  - path: /usr/local/bin/reliost-profiler
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      set -euo pipefail
+
+      PROFILE_DIR="/home/reliost/profiles"
+      SAMPLY="/root/.cargo/bin/samply"
+
+      mkdir -p "$PROFILE_DIR"
+
+      record_loop() {
+          while true; do
+              PERF_DATA=$(mktemp /tmp/perf-XXXXXX.data)
+              perf record -a -g -F 4000 -o "$PERF_DATA" -- sleep 20 2>/dev/null || true
+              TMP_OUT=$(mktemp "$PROFILE_DIR/.profile-XXXXXX.json.gz")
+              if "$SAMPLY" import "$PERF_DATA" --save-only -o "$TMP_OUT" 2>/dev/null; then
+                  chmod 644 "$TMP_OUT"
+                  mv "$TMP_OUT" "$PROFILE_DIR/latest.json.gz"
+              else
+                  rm -f "$TMP_OUT"
+              fi
+              rm -f "$PERF_DATA"
+          done
+      }
+
+      record_loop &
+      sleep 10
+      record_loop &
+      wait
+
+  # Systemd service for the profiler
+  - path: /etc/systemd/system/reliost-profiler.service
+    content: |
+      [Unit]
+      Description=Reliost Continuous perf Profiler
+      After=network.target
+
+      [Service]
+      Type=simple
+      ExecStart=/usr/local/bin/reliost-profiler
+      Restart=always
+      RestartSec=5
+
+      # Logging
+      StandardOutput=journal
+      StandardError=journal
+      SyslogIdentifier=reliost-profiler
+
+      [Install]
+      WantedBy=multi-user.target
+
   # Base configuration
   - path: /home/reliost/app/configuration/base.toml
     content: |
@@ -215,6 +276,9 @@ write_files:
 
       [quota]
       size_limit = "21 GB"
+
+      [self_profiles]
+      dir = "/home/reliost/profiles"
     permissions: '0640'
 
 runcmd:
@@ -248,6 +312,7 @@ runcmd:
   - mkdir -p /home/reliost/app/cache/symbols/breakpad-symindex
   - mkdir -p /home/reliost/app/cache/symbols/windows
   - mkdir -p /home/reliost/logs
+  - mkdir -p /home/reliost/profiles
   - chown -R reliost:reliost /home/reliost/
   - chmod 750 /home/reliost
 
@@ -394,6 +459,14 @@ runcmd:
     ./update.sh 0.3.0
     ```
 
+    ## 📈 Profiling
+    The reliost-profiler service records continuous perf profiles and serves them
+    at /self-profiles/latest. It requires samply to be installed as root first:
+    ```bash
+    sudo sh -c "curl --proto '=https' --tlsv1.2 -LsSf https://github.com/mstange/samply/releases/download/samply-v0.13.1/samply-installer.sh | sh"
+    sudo systemctl start reliost-profiler
+    ```
+
     ## 📊 Monitoring
     - `./status.sh` — quick status check
     - `sudo journalctl -u reliost -f` — live logs
@@ -417,9 +490,10 @@ runcmd:
   - echo "reliost soft nofile 65535" >> /etc/security/limits.conf
   - echo "reliost hard nofile 65535" >> /etc/security/limits.conf
 
-  # Enable systemd service (but don't start - binary not installed yet)
+  # Enable systemd services (but don't start - reliost binary and samply not installed yet)
   - systemctl daemon-reload
   - systemctl enable reliost.service
+  - systemctl enable reliost-profiler.service
 
   # Configure automatic security updates
   - echo 'Unattended-Upgrade::Automatic-Reboot "false";' >> /etc/apt/apt.conf.d/50unattended-upgrades
