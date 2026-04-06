@@ -36,3 +36,8 @@ wholesym = { git = "https://github.com/mstange/samply", rev = "c947d6339a9bea6c5
 
 [dev-dependencies]
 reqwest = "0.12"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
