@@ -398,6 +398,13 @@ runcmd:
     echo "=== Health Check ==="
     curl -s http://localhost:8080/__heartbeat__ && echo " ✓" || echo " ✗"
     echo ""
+    echo "=== System ==="
+    if [ -f /var/run/reboot-required ]; then
+        echo "⚠ Reboot required (run: sudo reboot)"
+    else
+        echo "No reboot required"
+    fi
+    echo ""
     echo "=== Recent Logs ==="
     sudo journalctl -u reliost -n 10 --no-pager
     EOF
