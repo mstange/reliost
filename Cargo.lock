@@ -267,12 +267,13 @@ checksum = "7d902e3d592a523def97af8f317b08ce16b7ab854c1985a0c671e6f15cebc236"
 
 [[package]]
 name = "async-compression"
-version = "0.4.41"
+version = "0.4.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0f9ee0f6e02ffd7ad5816e9464499fba7b3effd01123b515c41d1697c43dad1"
+checksum = "93c1f86859c1af3d514fa19e8323147ff10ea98684e6c7b307912509f50e67b2"
 dependencies = [
  "compression-codecs",
  "compression-core",
+ "futures-core",
  "futures-io",
  "pin-project-lite",
  "tokio",
@@ -482,9 +483,9 @@ dependencies = [
 
 [[package]]
 name = "compression-codecs"
-version = "0.4.37"
+version = "0.4.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eb7b51a7d9c967fc26773061ba86150f19c50c0d65c887cb1fbe295fd16619b7"
+checksum = "680dc087785c5230f8e8843e2e57ac7c1c90488b6a91b88caa265410568f441b"
 dependencies = [
  "brotli",
  "compression-core",
@@ -820,13 +821,13 @@ checksum = "5baebc0774151f905a1a2cc41989300b1e6fbb29aff0ceffa1064fdd3088d582"
 
 [[package]]
 name = "flate2"
-version = "1.1.9"
+version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "843fba2746e448b37e26a819579957415c8cef339bf08564fe8b7ddbd959573c"
+checksum = "4a3d7db9596fecd151c5f638c0ee5d5bd487b6e0ea232e5dc96d5250f6f94b1d"
 dependencies = [
  "crc32fast",
+ "libz-rs-sys",
  "miniz_oxide",
- "zlib-rs",
 ]
 
 [[package]]
@@ -1512,6 +1513,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "libz-rs-sys"
+version = "0.5.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c10501e7805cee23da17c7790e59df2870c0d4043ec6d03f67d31e2b53e77415"
+dependencies = [
+ "zlib-rs",
+]
+
+[[package]]
 name = "linear-map"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1670,7 +1680,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fa76a2c86f704bdb222d66965fb3d63269ce38518b83cb0575fca855ebb6316"
 dependencies = [
  "adler2",
- "simd-adler32",
 ]
 
 [[package]]
@@ -2496,7 +2505,7 @@ dependencies = [
 [[package]]
 name = "samply-api"
 version = "0.24.0"
-source = "git+https://github.com/mstange/samply?rev=0aaa30880e6b2d31eea06e3edbef3b39ead5469b#0aaa30880e6b2d31eea06e3edbef3b39ead5469b"
+source = "git+https://github.com/mstange/samply?rev=d8d3d5e1968c27714ea9671921d86d1e20547a1c#d8d3d5e1968c27714ea9671921d86d1e20547a1c"
 dependencies = [
  "samply-debugid",
  "samply-symbols",
@@ -2512,7 +2521,7 @@ dependencies = [
 [[package]]
 name = "samply-debugid"
 version = "0.1.0"
-source = "git+https://github.com/mstange/samply?rev=0aaa30880e6b2d31eea06e3edbef3b39ead5469b#0aaa30880e6b2d31eea06e3edbef3b39ead5469b"
+source = "git+https://github.com/mstange/samply?rev=d8d3d5e1968c27714ea9671921d86d1e20547a1c#d8d3d5e1968c27714ea9671921d86d1e20547a1c"
 dependencies = [
  "debugid",
  "uuid",
@@ -2521,7 +2530,7 @@ dependencies = [
 [[package]]
 name = "samply-object"
 version = "0.1.0"
-source = "git+https://github.com/mstange/samply?rev=0aaa30880e6b2d31eea06e3edbef3b39ead5469b#0aaa30880e6b2d31eea06e3edbef3b39ead5469b"
+source = "git+https://github.com/mstange/samply?rev=d8d3d5e1968c27714ea9671921d86d1e20547a1c#d8d3d5e1968c27714ea9671921d86d1e20547a1c"
 dependencies = [
  "debugid",
  "object",
@@ -2545,7 +2554,7 @@ dependencies = [
 [[package]]
 name = "samply-symbols"
 version = "0.24.1"
-source = "git+https://github.com/mstange/samply?rev=0aaa30880e6b2d31eea06e3edbef3b39ead5469b#0aaa30880e6b2d31eea06e3edbef3b39ead5469b"
+source = "git+https://github.com/mstange/samply?rev=d8d3d5e1968c27714ea9671921d86d1e20547a1c#d8d3d5e1968c27714ea9671921d86d1e20547a1c"
 dependencies = [
  "addr2line",
  "bitflags",
@@ -2755,12 +2764,6 @@ dependencies = [
  "errno",
  "libc",
 ]
-
-[[package]]
-name = "simd-adler32"
-version = "0.3.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "703d5c7ef118737c72f1af64ad2f6f8c5e1921f818cdcb97b8fe6fc69bf66214"
 
 [[package]]
 name = "slab"
@@ -3540,7 +3543,7 @@ dependencies = [
 [[package]]
 name = "wholesym"
 version = "0.8.1"
-source = "git+https://github.com/mstange/samply?rev=0aaa30880e6b2d31eea06e3edbef3b39ead5469b#0aaa30880e6b2d31eea06e3edbef3b39ead5469b"
+source = "git+https://github.com/mstange/samply?rev=d8d3d5e1968c27714ea9671921d86d1e20547a1c#d8d3d5e1968c27714ea9671921d86d1e20547a1c"
 dependencies = [
  "async-compression",
  "bytes",
@@ -4122,9 +4125,9 @@ dependencies = [
 
 [[package]]
 name = "zlib-rs"
-version = "0.6.3"
+version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3be3d40e40a133f9c916ee3f9f4fa2d9d63435b5fbe1bfc6d9dae0aa0ada1513"
+checksum = "40990edd51aae2c2b6907af74ffb635029d5788228222c4bb811e9351c0caad3"
 
 [[package]]
 name = "zmij"
