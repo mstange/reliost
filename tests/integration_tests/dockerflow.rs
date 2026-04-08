@@ -1,11 +1,6 @@
-use std::net::TcpListener;
-
-use reliost::{configuration::ServerSettings, configuration::Settings};
-use tokio::task::JoinHandle;
-
 #[tokio::test]
 async fn heartbeat_works() {
-    let (address, _join_handle) = spawn_app();
+    let (address, _join_handle) = super::spawn_app();
 
     let client = reqwest::Client::new();
     let response = client
@@ -19,7 +14,7 @@ async fn heartbeat_works() {
 
 #[tokio::test]
 async fn lbheartbeat_works() {
-    let (address, _join_handle) = spawn_app();
+    let (address, _join_handle) = super::spawn_app();
 
     let client = reqwest::Client::new();
     let response = client
@@ -31,20 +26,31 @@ async fn lbheartbeat_works() {
     assert_eq!(response.content_length(), Some(0));
 }
 
-fn spawn_app() -> (String, JoinHandle<Result<(), std::io::Error>>) {
-    let host = "127.0.0.1";
-    let listener = TcpListener::bind(format!("{host}:0")).expect("Failed to bind random port");
-    let port = listener.local_addr().unwrap().port();
-    let settings = Settings {
-        server: ServerSettings {
-            host: host.to_string(),
-            port,
-        },
-        symbols: None,
-        quota: None,
-        self_profiles: None,
-    };
-    let (server, _) = reliost::startup::run(listener, settings).expect("Failed to bind address.");
-    let join_handle = tokio::spawn(server);
-    (format!("{host}:{port}"), join_handle)
+#[tokio::test]
+async fn version_returns_json() {
+    let (address, _join_handle) = super::spawn_app();
+
+    let client = reqwest::Client::new();
+    let response = client
+        .get(format!("http://{address}/__version__"))
+        .send()
+        .await
+        .expect("Failed to execute request.");
+    assert!(response.status().is_success());
+
+    let content_type = response
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("");
+    assert!(
+        content_type.contains("application/json"),
+        "expected application/json, got {content_type:?}"
+    );
+
+    let body: serde_json::Value = response.json().await.expect("Response was not valid JSON");
+    assert!(body.get("source").is_some(), "missing 'source' field");
+    assert!(body.get("version").is_some(), "missing 'version' field");
+    assert!(body.get("commit").is_some(), "missing 'commit' field");
+    assert!(body.get("build").is_some(), "missing 'build' field");
 }
