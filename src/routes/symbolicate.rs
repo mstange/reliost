@@ -14,15 +14,14 @@ use crate::{channel_writer::writer_with_stream, double_buffered_pipe::RemoteBufW
 const CHUNK_SIZE: usize = 64 * 1024;
 const GZIP_COMPRESSION_LEVEL: u32 = 2; // not tweaked
 
-#[tracing::instrument(name = "Symbolicate v5", skip(contents, symbol_manager))]
+#[tracing::instrument(name = "Symbolicate v5", skip(request_json, symbol_manager))]
 pub async fn symbolicate_v5(
-    contents: web::Bytes,
+    request_json: String,
     symbol_manager: web::Data<Arc<SymbolManager>>,
 ) -> impl Responder {
-    let request_json = std::str::from_utf8(&contents).unwrap();
     let response_json = symbol_manager
         .get_ref()
-        .query_json_api("/symbolicate/v5", request_json)
+        .query_json_api("/symbolicate/v5", &request_json)
         .await;
 
     let (writer, stream) = writer_with_stream(vec![
