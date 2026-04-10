@@ -1,5 +1,8 @@
 use actix_web::{
-    http::header::{self, ContentEncoding},
+    http::{
+        header::{self, ContentEncoding},
+        StatusCode,
+    },
     mime, web, HttpResponse, Responder,
 };
 use flate2::{write::GzEncoder, Compression};
@@ -24,6 +27,9 @@ pub async fn symbolicate_v5(
         .query_json_api("/symbolicate/v5", &request_json)
         .await;
 
+    let status = StatusCode::from_u16(response_json.http_status())
+        .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
+
     let (writer, stream) = writer_with_stream(vec![
         Vec::with_capacity(CHUNK_SIZE),
         Vec::with_capacity(CHUNK_SIZE),
@@ -38,7 +44,7 @@ pub async fn symbolicate_v5(
         drop(response_json); // deallocations after response end
     });
 
-    HttpResponse::Ok()
+    HttpResponse::build(status)
         .content_type(mime::APPLICATION_JSON)
         .append_header((header::CONTENT_ENCODING, ContentEncoding::Gzip))
         .streaming(stream)
