@@ -14,7 +14,6 @@ use crate::routes::{
 };
 use crate::symbol_manager::create_symbol_manager_and_quota_manager;
 
-#[tracing::instrument(skip_all)]
 pub fn run(
     listener: TcpListener,
     settings: Settings,

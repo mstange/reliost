@@ -113,7 +113,6 @@ impl TryFrom<String> for Environment {
     }
 }
 
-#[tracing::instrument(name = "Get configuration", skip_all)]
 pub fn get_configuration() -> Result<Settings, ConfigError> {
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
     let configuration_directory = base_path.join("configuration");

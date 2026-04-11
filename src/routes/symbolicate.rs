@@ -10,14 +10,25 @@ use std::{
     io::{BufWriter, Write},
     sync::Arc,
 };
-use wholesym::SymbolManager;
+use wholesym::{ModuleLoadOutcome, SymbolManager};
 
 use crate::{channel_writer::writer_with_stream, double_buffered_pipe::RemoteBufWriter};
 
 const CHUNK_SIZE: usize = 64 * 1024;
 const GZIP_COMPRESSION_LEVEL: u32 = 2; // not tweaked
 
-#[tracing::instrument(name = "Symbolicate v5", skip(request_json, symbol_manager))]
+#[tracing::instrument(
+    name = "Symbolicate v5",
+    skip(request_json, symbol_manager),
+    fields(
+        http_status = tracing::field::Empty,
+        jobs = tracing::field::Empty,
+        stacks = tracing::field::Empty,
+        frames = tracing::field::Empty,
+        modules_loaded = tracing::field::Empty,
+        modules_failed = tracing::field::Empty,
+    )
+)]
 pub async fn symbolicate_v5(
     request_json: String,
     symbol_manager: web::Data<Arc<SymbolManager>>,
@@ -26,6 +37,24 @@ pub async fn symbolicate_v5(
         .get_ref()
         .query_json_api("/symbolicate/v5", &request_json)
         .await;
+
+    let span = tracing::Span::current();
+    span.record("http_status", response_json.http_status());
+    if let Some(stats) = response_json.symbolicate_stats() {
+        span.record("jobs", stats.jobs_count);
+        span.record("stacks", stats.stacks_count);
+        span.record("frames", stats.frames_count);
+        let (loaded, failed) =
+            stats
+                .module_stats
+                .iter()
+                .fold((0usize, 0usize), |(l, f), m| match m.outcome {
+                    ModuleLoadOutcome::Loaded => (l + 1, f),
+                    ModuleLoadOutcome::Failed { .. } => (l, f + 1),
+                });
+        span.record("modules_loaded", loaded);
+        span.record("modules_failed", failed);
+    }
 
     let status = StatusCode::from_u16(response_json.http_status())
         .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);

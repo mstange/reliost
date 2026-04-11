@@ -1,37 +1,36 @@
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Mutex;
-use std::time::SystemTime;
+use std::time::{Instant, SystemTime};
 
 use samply_quota_manager::QuotaManagerNotifier;
 use wholesym::{DownloadError, SymbolManagerObserver};
 
 pub struct QuotaManagingSymbolManagerObserver {
     quota_manager_notifiers: Vec<QuotaManagerNotifier>,
-    urls: Mutex<HashMap<u64, String>>,
+    downloads: Mutex<HashMap<u64, (String, Instant)>>,
 }
 
 impl QuotaManagingSymbolManagerObserver {
     pub fn new(quota_manager_notifiers: Vec<QuotaManagerNotifier>) -> Self {
         Self {
             quota_manager_notifiers,
-            urls: Mutex::new(HashMap::new()),
+            downloads: Mutex::new(HashMap::new()),
         }
     }
 }
 
 impl SymbolManagerObserver for QuotaManagingSymbolManagerObserver {
     fn on_new_download_before_connect(&self, download_id: u64, url: &str) {
-        tracing::info!(url, "Connecting to URL");
-        self.urls
-            .lock()
-            .unwrap()
-            .insert(download_id, url.to_owned());
+        tracing::debug!(url, "Connecting to URL");
+        let mut downloads = self.downloads.lock().unwrap();
+        downloads.insert(download_id, (url.to_owned(), Instant::now()));
     }
 
     fn on_download_started(&self, download_id: u64) {
-        let url = self.urls.lock().unwrap().get(&download_id).unwrap().clone();
-        tracing::info!(url, "Downloading from URL");
+        let downloads = self.downloads.lock().unwrap();
+        let url = downloads.get(&download_id).unwrap().0.clone();
+        tracing::debug!(url, "Downloading from URL");
     }
 
     fn on_download_progress(
@@ -49,8 +48,8 @@ impl SymbolManagerObserver for QuotaManagingSymbolManagerObserver {
         time_until_headers: std::time::Duration,
         time_until_completed: std::time::Duration,
     ) {
-        let url = self.urls.lock().unwrap().remove(&download_id).unwrap();
-        tracing::info!(
+        let (url, _) = self.downloads.lock().unwrap().remove(&download_id).unwrap();
+        tracing::debug!(
             url,
             uncompressed_size_in_bytes,
             time_until_headers_in_seconds = time_until_headers.as_secs_f64(),
@@ -60,21 +59,22 @@ impl SymbolManagerObserver for QuotaManagingSymbolManagerObserver {
     }
 
     fn on_download_failed(&self, download_id: u64, reason: DownloadError) {
-        let url = self.urls.lock().unwrap().remove(&download_id).unwrap();
-        tracing::info!(
+        let (url, started_at) = self.downloads.lock().unwrap().remove(&download_id).unwrap();
+        tracing::debug!(
             url,
             reason = reason.to_string(),
+            elapsed_in_seconds = started_at.elapsed().as_secs_f64(),
             "Failed to download from URL"
         );
     }
 
     fn on_download_canceled(&self, download_id: u64) {
-        let url = self.urls.lock().unwrap().remove(&download_id).unwrap();
-        tracing::info!(url, "Canceled download from URL");
+        let (url, _) = self.downloads.lock().unwrap().remove(&download_id).unwrap();
+        tracing::debug!(url, "Canceled download from URL");
     }
 
     fn on_file_created(&self, path: &Path, size_in_bytes: u64) {
-        tracing::info!(
+        tracing::debug!(
             path = path.to_string_lossy().to_string(),
             size_in_bytes,
             "Created new file"
@@ -86,14 +86,14 @@ impl SymbolManagerObserver for QuotaManagingSymbolManagerObserver {
     }
 
     fn on_file_accessed(&self, path: &Path) {
-        tracing::info!(path = path.to_string_lossy().to_string(), "File accessed");
+        tracing::debug!(path = path.to_string_lossy().to_string(), "File accessed");
         for notifier in &self.quota_manager_notifiers {
             notifier.on_file_accessed(path, SystemTime::now());
         }
     }
 
     fn on_file_missed(&self, path: &Path) {
-        tracing::info!(
+        tracing::debug!(
             path = path.to_string_lossy().to_string(),
             "File access missed"
         );

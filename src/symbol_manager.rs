@@ -15,7 +15,6 @@ const USER_AGENT: &str = concat!(
     ")"
 );
 
-#[tracing::instrument(name = "Create symbol manager", skip_all)]
 pub fn create_symbol_manager_and_quota_manager(
     settings: Settings,
 ) -> (SymbolManager, Option<QuotaManager>) {
