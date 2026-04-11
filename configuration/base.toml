@@ -5,6 +5,7 @@ servers = [
 ]
 cache_dir = "./cache/symbols/breakpad/"
 symindex_dir = "./cache/symbols/breakpad-symindex/"
+negative_cache_ttl = "30s"
 
 # Servers from which we can download Windows .pdb, .exe and .dll files
 [symbols.windows]

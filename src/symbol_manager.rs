@@ -53,6 +53,9 @@ fn create_symbol_manager_config(settings: &Settings) -> SymbolManagerConfig {
             if let Some(symindex_dir) = &breakpad.symindex_dir {
                 config = config.breakpad_symindex_cache_dir(symindex_dir);
             }
+            if let Some(ttl) = breakpad.negative_cache_ttl {
+                config = config.breakpad_negative_cache_ttl(ttl);
+            }
         }
         if let Some(windows) = symbols.windows.as_ref() {
             for server_url in &windows.servers {

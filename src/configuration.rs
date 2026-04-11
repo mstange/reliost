@@ -35,6 +35,10 @@ pub struct BreakpadSymbolSettings {
 
     pub cache_dir: PathBuf,
     pub symindex_dir: Option<PathBuf>,
+
+    #[serde(default)]
+    #[serde(with = "humantime_serde")]
+    pub negative_cache_ttl: Option<Duration>,
 }
 
 #[derive(Deserialize)]
