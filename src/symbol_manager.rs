@@ -6,6 +6,15 @@ use wholesym::{SymbolManager, SymbolManagerConfig};
 use crate::configuration::{QuotaSettings, Settings};
 use crate::symbol_manager_observer::QuotaManagingSymbolManagerObserver;
 
+const USER_AGENT: &str = concat!(
+    env!("CARGO_PKG_NAME"),
+    "/",
+    env!("CARGO_PKG_VERSION"),
+    " (+",
+    env!("CARGO_PKG_REPOSITORY"),
+    ")"
+);
+
 #[tracing::instrument(name = "Create symbol manager", skip_all)]
 pub fn create_symbol_manager_and_quota_manager(
     settings: Settings,
@@ -40,7 +49,7 @@ pub fn create_symbol_manager_and_quota_manager(
 }
 
 fn create_symbol_manager_config(settings: &Settings) -> SymbolManagerConfig {
-    let mut config = SymbolManagerConfig::default();
+    let mut config = SymbolManagerConfig::default().user_agent(USER_AGENT);
     if let Some(symbols) = settings.symbols.as_ref() {
         if let Some(breakpad) = symbols.breakpad.as_ref() {
             if breakpad.servers.is_empty() {
