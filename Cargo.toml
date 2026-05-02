@@ -32,7 +32,7 @@ tracing-bunyan-formatter = "0.3"
 tracing-log = "0.2"
 tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
 # wholesym = { path = "../samply/wholesym", features = ["api"] }
-wholesym = { git = "https://github.com/mstange/samply", rev = "467bfdc876ef8c7f8fb3bc2fc3c51bbab5e4910a", features = ["api"] }
+wholesym = { git = "https://github.com/mstange/samply", rev = "11001b418a92b0a2a3c8d3957a6a7548c01d9d13", features = ["api"] }
 
 [dev-dependencies]
 reqwest = { version = "0.13", features = ["json", "gzip"] }

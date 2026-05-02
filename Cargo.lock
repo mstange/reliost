@@ -2587,7 +2587,7 @@ dependencies = [
 [[package]]
 name = "samply-api"
 version = "0.24.0"
-source = "git+https://github.com/mstange/samply?rev=467bfdc876ef8c7f8fb3bc2fc3c51bbab5e4910a#467bfdc876ef8c7f8fb3bc2fc3c51bbab5e4910a"
+source = "git+https://github.com/mstange/samply?rev=11001b418a92b0a2a3c8d3957a6a7548c01d9d13#11001b418a92b0a2a3c8d3957a6a7548c01d9d13"
 dependencies = [
  "samply-debugid",
  "samply-symbols",
@@ -2603,7 +2603,7 @@ dependencies = [
 [[package]]
 name = "samply-debugid"
 version = "0.1.0"
-source = "git+https://github.com/mstange/samply?rev=467bfdc876ef8c7f8fb3bc2fc3c51bbab5e4910a#467bfdc876ef8c7f8fb3bc2fc3c51bbab5e4910a"
+source = "git+https://github.com/mstange/samply?rev=11001b418a92b0a2a3c8d3957a6a7548c01d9d13#11001b418a92b0a2a3c8d3957a6a7548c01d9d13"
 dependencies = [
  "debugid",
  "uuid",
@@ -2612,7 +2612,7 @@ dependencies = [
 [[package]]
 name = "samply-object"
 version = "0.1.0"
-source = "git+https://github.com/mstange/samply?rev=467bfdc876ef8c7f8fb3bc2fc3c51bbab5e4910a#467bfdc876ef8c7f8fb3bc2fc3c51bbab5e4910a"
+source = "git+https://github.com/mstange/samply?rev=11001b418a92b0a2a3c8d3957a6a7548c01d9d13#11001b418a92b0a2a3c8d3957a6a7548c01d9d13"
 dependencies = [
  "debugid",
  "object",
@@ -2636,7 +2636,7 @@ dependencies = [
 [[package]]
 name = "samply-symbols"
 version = "0.24.1"
-source = "git+https://github.com/mstange/samply?rev=467bfdc876ef8c7f8fb3bc2fc3c51bbab5e4910a#467bfdc876ef8c7f8fb3bc2fc3c51bbab5e4910a"
+source = "git+https://github.com/mstange/samply?rev=11001b418a92b0a2a3c8d3957a6a7548c01d9d13#11001b418a92b0a2a3c8d3957a6a7548c01d9d13"
 dependencies = [
  "addr2line",
  "bitflags",
@@ -3652,7 +3652,7 @@ dependencies = [
 [[package]]
 name = "wholesym"
 version = "0.8.1"
-source = "git+https://github.com/mstange/samply?rev=467bfdc876ef8c7f8fb3bc2fc3c51bbab5e4910a#467bfdc876ef8c7f8fb3bc2fc3c51bbab5e4910a"
+source = "git+https://github.com/mstange/samply?rev=11001b418a92b0a2a3c8d3957a6a7548c01d9d13#11001b418a92b0a2a3c8d3957a6a7548c01d9d13"
 dependencies = [
  "bytes",
  "core-foundation 0.10.1",
