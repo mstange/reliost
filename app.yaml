@@ -1,8 +1,0 @@
-# Tell the App Engine to use the Dockerfile in the current directory.
-runtime: custom
-env: flex
-
-# Let's use the manual scaling with 1 instance for now.
-# We need to remove this once we really want to deploy for production.
-manual_scaling:
-  instances: 1

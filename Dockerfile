@@ -1,15 +1,39 @@
 ARG userid=10001
 ARG groupid=10001
 
-FROM debian:bookworm-slim
+# Build stage: uses cargo-chef so that dependency compilation is cached across
+# builds -- only the "cook" layer needs to rerun when the recipe changes.
+# See https://github.com/LukeMathWalker/cargo-chef for more information.
+FROM lukemathwalker/cargo-chef:latest-rust-1-trixie AS chef
+WORKDIR /app
 
-# VERSION must be passed as a build arg, e.g. --build-arg VERSION=0.1.0
-ARG VERSION
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+FROM chef AS builder
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+COPY . .
+# Read by build.rs to construct the build URL embedded in version.json.
+ARG github_server_url
+ARG github_repository
+ARG github_run_id
+ENV GITHUB_SERVER_URL=${github_server_url}
+ENV GITHUB_REPOSITORY=${github_repository}
+ENV GITHUB_RUN_ID=${github_run_id}
+RUN cargo build --release --bin reliost
+
+# Runtime stage.
+FROM debian:trixie-slim AS runtime
+
 ARG userid
 ARG groupid
 
+# openssl: dynamically linked by some dependencies.
+# ca-certificates: needed for HTTPS to upstream symbol servers.
 RUN apt-get update -y \
-  && apt-get install -y --no-install-recommends curl ca-certificates xz-utils openssl \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
   && apt-get autoremove -y \
   && apt-get clean -y \
   && rm -rf /var/lib/apt/lists/*
@@ -19,16 +43,15 @@ RUN set -x \
   && useradd -g app --uid $userid --shell /usr/sbin/nologin --create-home --home-dir /app app
 
 WORKDIR /app
-
-RUN curl -LsSf \
-    "https://github.com/mstange/reliost/releases/download/v${VERSION}/reliost-v${VERSION}-x86_64-unknown-linux-gnu.tar.xz" \
-  | tar -xJ --strip-components=1
-
+COPY --from=builder /app/target/release/reliost reliost
 COPY configuration configuration
 
-ENV PORT=8080
 ENV APP_ENVIRONMENT="production"
-EXPOSE $PORT
+# mozcloud tenant declares application_ports: [8000]. This overrides the
+# port from configuration/production.toml, which is 8080 for the hetzner
+# deploy (nginx proxies to :8080 there).
+ENV RELIOST_SERVER_PORT=8000
+EXPOSE 8000
 
 USER app
 ENTRYPOINT ["./reliost"]
