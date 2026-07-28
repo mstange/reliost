@@ -1,0 +1,50 @@
+name: Docker
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # required for Workload Identity Federation to GCP
+    steps:
+      - uses: actions/checkout@v5
+
+      # mozilla/deploy-actions/docker-build tags the image per MozCloud
+      # conventions -- 10-char short SHA on branch pushes (matches the
+      # tenant's stage image_regex) and the raw tag name on tag pushes
+      # (matches the tenant's prod image_regex when tags are CalVer,
+      # e.g. v2026.07.23).
+      - name: Build image
+        id: build
+        uses: mozilla/deploy-actions/docker-build@v6.7.0
+        with:
+          image_name: reliost
+          gar_name: reliost-prod
+          project_id: moz-fx-reliost-prod
+          # Passed to build.rs so version.json embeds the correct build URL.
+          docker_build_args: |
+            github_server_url=${{ github.server_url }}
+            github_repository=${{ github.repository }}
+            github_run_id=${{ github.run_id }}
+
+      # Only push on branch/tag pushes; PR runs stop at build for validation.
+      # mozilla/deploy-actions/docker-push derives the WIF provider path and
+      # service account by convention from the project number and project id --
+      # SA is artifact-writer@moz-fx-reliost-prod.iam.gserviceaccount.com.
+      - name: Push image
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: mozilla/deploy-actions/docker-push@v6.7.0
+        with:
+          image_tags: ${{ steps.build.outputs.image_tags }}
+          project_id: moz-fx-reliost-prod
+          workload_identity_pool_project_number: ${{ vars.GCPV2_WORKLOAD_IDENTITY_POOL_PROJECT_NUMBER }}
