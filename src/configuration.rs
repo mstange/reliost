@@ -20,6 +20,7 @@ pub struct SelfProfilesSettings {
 pub struct ServerSettings {
     pub host: String,
     pub port: u16,
+    pub workers: Option<usize>,
 }
 
 #[derive(Deserialize)]
