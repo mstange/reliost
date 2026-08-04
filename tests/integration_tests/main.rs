@@ -15,6 +15,7 @@ fn spawn_app() -> (String, JoinHandle<Result<(), std::io::Error>>) {
         server: ServerSettings {
             host: host.to_string(),
             port,
+            workers: None,
         },
         symbols: None,
         quota: None,

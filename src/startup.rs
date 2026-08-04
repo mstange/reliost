@@ -18,11 +18,12 @@ pub fn run(
     listener: TcpListener,
     settings: Settings,
 ) -> Result<(Server, Option<QuotaManager>), std::io::Error> {
+    let workers = settings.server.workers;
     let self_profiles_dir: web::Data<Option<PathBuf>> =
         web::Data::new(settings.self_profiles.as_ref().map(|s| s.dir.clone()));
     let (symbol_manager, quota_manager) = create_symbol_manager_and_quota_manager(settings);
     let app_data = web::Data::new(Arc::new(symbol_manager));
-    let server = HttpServer::new(move || {
+    let mut server = HttpServer::new(move || {
         let cors = Cors::default()
             .allow_any_origin()
             .allowed_methods(vec!["GET", "POST", "OPTION"])
@@ -48,8 +49,10 @@ pub fn run(
             .app_data(app_data.clone())
             .app_data(self_profiles_dir.clone())
             .app_data(web::PayloadConfig::new(100 * 1000 * 1000)) // 100 MB
-    })
-    .listen(listener)?
-    .run();
+    });
+    if let Some(workers) = workers {
+        server = server.workers(workers);
+    }
+    let server = server.listen(listener)?.run();
     Ok((server, quota_manager))
 }
