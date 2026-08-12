@@ -1,3 +1,4 @@
+mod asm;
 mod dockerflow;
 mod routing;
 mod symbolicate;
