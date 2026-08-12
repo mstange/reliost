@@ -76,5 +76,8 @@ pub async fn symbolicate_v5(
     HttpResponse::build(status)
         .content_type(mime::APPLICATION_JSON)
         .append_header((header::CONTENT_ENCODING, ContentEncoding::Gzip))
+        // Tell nginx not to buffer the response, so that the chunks we produce
+        // are forwarded to the client as soon as they're ready.
+        .append_header(("X-Accel-Buffering", "no"))
         .streaming(stream)
 }
